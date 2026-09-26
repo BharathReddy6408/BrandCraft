@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @frame footer {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .cover {
+            text-align: center;
+            padding-top: 150px;
+        }
+        .cover-title {
+            font-size: 36pt;
+            color: #17344F; /* Deep Navy */
+            margin-bottom: 20px;
+        }
+        .cover-subtitle {
+            font-size: 18pt;
+            color: #C68B3C; /* Warm Copper */
+            margin-bottom: 50px;
+        }
+        .page-break {
+            pdf-pagebreak-before: always;
+        }
+        h1 {
+            color: #17344F;
+            font-size: 24pt;
+            border-bottom: 1px solid #C8BEAF;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+        }
+        h2 {
+            color: #17344F;
+            font-size: 16pt;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #8FA99B;
+            font-size: 14pt;
+        }
+        p {
+            font-size: 11pt;
+            margin-bottom: 15px;
+        }
+        .swatch-container {
+            width: 100%;
+        }
+        .swatch {
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+            margin-right: 20px;
+            border: 1px solid #CCC;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="footerContent" style="text-align: center; color: #999; font-size: 9pt;">
+        BrandCraft | {{ report.project.business_name }} Executive Report | <pdf:pagenumber>
+    </div>
+
+    <!-- COVER -->
+    <div class="cover">
+        <div class="cover-subtitle">BRANDCRAFT</div>
+        <div class="cover-title">{{ report.project.business_name|upper }}</div>
+        <div class="cover-subtitle" style="color: #666; font-size: 14pt;">EXECUTIVE BRAND REPORT</div>
+        <div style="margin-top: 50px; font-size: 12pt; color: #999;">
+            Version {{ report.version }} | Generated {{ report.created_at|date:"F j, Y" }}
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- EXECUTIVE SUMMARY -->
+    <h1>Executive Summary</h1>
+    <p>{{ data.executive_summary }}</p>
+
+    <!-- BRAND FOUNDATION -->
+    <h1>Brand Foundation</h1>
+    <h2>Overview</h2>
+    <p><strong>Business Name:</strong> {{ data.strategy.overview.name }}</p>
+    <p><strong>Industry:</strong> {{ data.strategy.overview.industry }}</p>
+    <p><strong>Target Audience:</strong> {{ data.strategy.overview.target_audience }}</p>
+    
+    <h2>Strategic DNA</h2>
+    <p><strong>Mission:</strong> {{ data.strategy.dna.mission }}</p>
+    <p><strong>Vision:</strong> {{ data.strategy.dna.vision }}</p>
+    <p><strong>USP:</strong> {{ data.strategy.dna.usp }}</p>
+
+    <div class="page-break"></div>
+
+    <!-- BRAND IDENTITY -->
+    <h1>Visual Identity</h1>
+    
+    {% if data.identity.logo_url %}
+    <h2>Primary Logo</h2>
+    <!-- Weasyprint/xhtml2pdf needs absolute paths or manageable relative paths, but for MVP we use placeholder text if image fails -->
+    <p><em>(Logo Asset Generated)</em></p>
+    {% endif %}
+
+    <h2>Color Palette</h2>
+    <div class="swatch-container">
+        {% for k, v in data.identity.colors.items %}
+            <div style="display:inline-block; margin-right: 20px; text-align: center;">
+                <div class="swatch" style="background-color: {{ v }};"></div>
+                <p><strong>{{ k|title }}</strong><br>{{ v }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <h2>Typography</h2>
+    <p><strong>Heading Font:</strong> {{ data.identity.typography.heading }}</p>
+    <p><strong>Body Font:</strong> {{ data.identity.typography.body }}</p>
+
+    <div class="page-break"></div>
+
+    <!-- INTELLIGENCE & AUDIT -->
+    <h1>Brand Intelligence</h1>
+    {% if data.audit %}
+    <p><strong>Overall Health Score:</strong> {{ data.audit.overall_score }}%</p>
+    <p><strong>Consistency Score:</strong> {{ data.audit.consistency_score }}%</p>
+    
+    <h2>Audit Summary</h2>
+    <p>{{ data.audit.summary }}</p>
+
+    <h2>Strengths</h2>
+    <ul>
+        {% for item in data.audit.strengths %}
+        <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Opportunities</h2>
+    <ul>
+        {% for item in data.audit.opportunities %}
+        <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No recent audit available.</p>
+    {% endif %}
+
+    <!-- ACTIVATION -->
+    <h1>Activation Summary</h1>
+    <p><strong>Marketing Content:</strong> {{ data.stats.marketing_count }}</p>
+    <p><strong>Social Posts:</strong> {{ data.stats.social_count }}</p>
+    <p><strong>Campaigns:</strong> {{ data.stats.campaign_count }}</p>
+    <p><strong>Creative Assets:</strong> {{ data.stats.creative_count }}</p>
+
+</body>
+</html>

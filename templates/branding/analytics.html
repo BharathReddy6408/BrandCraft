@@ -1,0 +1,325 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Brand Intelligence | {{ project.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Clean, flat design system for Analytics */
+.intel-header {
+    margin-bottom: 32px;
+}
+.intel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+}
+.metric-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 12px;
+    padding: 24px;
+}
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.metric-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    line-height: 1;
+}
+
+.audit-section {
+    background: #FDFBF7;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+}
+.audit-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    margin-bottom: 16px;
+}
+
+.ready-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.ready-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+.status-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+.status-pass { background: rgba(56, 179, 145, 0.1); color: #38B391; }
+.status-fail { background: rgba(231, 76, 60, 0.1); color: #E74C3C; }
+
+.btn-audit {
+    background: var(--color-navy-deep);
+    color: #FFF;
+    border-radius: 50px;
+    padding: 12px 32px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+}
+.btn-audit:hover {
+    background: #0f2438;
+    color: #FFF;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="intel-header">
+    <h1 class="intel-title">Brand Intelligence</h1>
+    <p class="text-muted">Real-time analysis of your brand's foundation, readiness, and consistency.</p>
+</div>
+
+<!-- Deterministic Core Metrics -->
+<div class="metric-grid">
+    <div class="metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Foundation</span>
+            <span style="font-size: 1.2rem;">🏗️</span>
+        </div>
+        <div class="metric-value">{{ foundation_score }}<span style="font-size:1.2rem; color:var(--color-text-muted);">%</span></div>
+        <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:8px;">Identity Completeness</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Activation</span>
+            <span style="font-size: 1.2rem;">🚀</span>
+        </div>
+        <div class="metric-value">{{ activation_score }}<span style="font-size:1.2rem; color:var(--color-text-muted);">%</span></div>
+        <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:8px;">Asset Generation</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Readiness</span>
+            <span style="font-size: 1.2rem;">🎯</span>
+        </div>
+        <div class="metric-value">{{ readiness_data.score }}<span style="font-size:1.2rem; color:var(--color-text-muted);">%</span></div>
+        <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:8px;">Campaign Ready</div>
+    </div>
+    <div class="metric-card" style="background: var(--color-navy-deep); color: #FFF; border-color: var(--color-navy-deep);">
+        <div class="metric-header">
+            <span class="metric-label" style="color: rgba(255,255,255,0.7);">AI Consistency</span>
+            <span style="font-size: 1.2rem;">🤖</span>
+        </div>
+        <div class="metric-value" style="color: #FFF;">
+            {% if latest_audit %}
+                {{ latest_audit.consistency_score }}<span style="font-size:1.2rem; color:rgba(255,255,255,0.7);">%</span>
+            {% else %}
+                --
+            {% endif %}
+        </div>
+        <div style="font-size:0.8rem; color:rgba(255,255,255,0.7); margin-top:8px;">Requires AI Audit</div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Campaign Readiness Details -->
+    <div class="col-md-6 mb-4">
+        <div class="metric-card" style="height: 100%;">
+            <h5 style="font-family:'Playfair Display',serif; font-weight:700; color:var(--color-navy-deep); margin-bottom: 24px;">Campaign Readiness Checklist</h5>
+            <ul class="ready-list">
+                {% for item in readiness_data.ready_items %}
+                <li>
+                    <div class="status-icon status-pass">✓</div>
+                    <span>{{ item }}</span>
+                </li>
+                {% endfor %}
+                {% for item in readiness_data.missing_items %}
+                <li>
+                    <div class="status-icon status-fail">×</div>
+                    <span style="color:var(--color-text-muted);">{{ item }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Generation Stats -->
+    <div class="col-md-6 mb-4">
+        <div class="metric-card" style="height: 100%;">
+            <h5 style="font-family:'Playfair Display',serif; font-weight:700; color:var(--color-navy-deep); margin-bottom: 24px;">Content Coverage</h5>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <span class="text-muted fw-bold small text-uppercase">Asset Type</span>
+                <span class="text-muted fw-bold small text-uppercase">Count</span>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span>🎨 Logos</span>
+                <span class="fw-bold">{{ activity_stats.logos_generated }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span>🖼️ Creative Assets</span>
+                <span class="fw-bold">{{ activity_stats.creative_assets }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span>📝 Marketing Content</span>
+                <span class="fw-bold">{{ activity_stats.marketing_content }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span>📱 Social Posts</span>
+                <span class="fw-bold">{{ activity_stats.social_posts }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span>🎯 Campaigns</span>
+                <span class="fw-bold">{{ activity_stats.campaigns }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Brand Audit Section -->
+<div class="audit-section">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h3 class="audit-title">AI Brand Audit Engine</h3>
+            <p class="text-muted mb-0" style="font-size: 0.95rem; line-height: 1.6;">
+                Our AI analyzes your generated content, marketing copy, and social posts against your core Brand DNA. 
+                It identifies inconsistencies in tone, evaluates visual alignment, and provides strategic recommendations to strengthen your brand presence.
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button id="runAuditBtn" class="btn-audit" onclick="runBrandAudit()">
+                <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                Run Full Brand Audit
+            </button>
+        </div>
+    </div>
+    
+    <div id="auditResults" class="mt-4 {% if not latest_audit %}d-none{% endif %}" style="background: #FFF; border-radius: 12px; padding: 24px; border: 1px solid rgba(200,190,175,0.4);">
+        <h5 style="font-weight: 700; color: var(--color-navy-deep); margin-bottom: 16px;">Latest Audit Results</h5>
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <p id="auditSummary" style="font-size: 0.9rem; color: var(--color-text-muted);">
+                    {{ latest_audit.summary }}
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h6 style="color: #38B391; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Strengths</h6>
+                <ul id="auditStrengths" style="font-size: 0.85rem; padding-left: 16px;">
+                    {% if latest_audit %}
+                        {% for item in latest_audit.strengths %}<li>{{ item }}</li>{% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 style="color: #E74C3C; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Weaknesses</h6>
+                <ul id="auditWeaknesses" style="font-size: 0.85rem; padding-left: 16px;">
+                    {% if latest_audit %}
+                        {% for item in latest_audit.weaknesses %}<li>{{ item }}</li>{% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6 style="color: #F39C12; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Opportunities</h6>
+                <ul id="auditOpportunities" style="font-size: 0.85rem; padding-left: 16px;">
+                    {% if latest_audit %}
+                        {% for item in latest_audit.opportunities %}<li>{{ item }}</li>{% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function runBrandAudit() {
+    const btn = document.getElementById('runAuditBtn');
+    const spinner = btn.querySelector('.spinner-border');
+    const results = document.getElementById('auditResults');
+    
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    // Will trigger actual endpoint when D & E are implemented
+    fetch("{% url 'branding:run_brand_audit' project.pk %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // Update UI
+            document.getElementById('auditSummary').innerText = data.audit.summary;
+            
+            const updateList = (id, items) => {
+                const ul = document.getElementById(id);
+                ul.innerHTML = '';
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerText = item;
+                    ul.appendChild(li);
+                });
+            };
+            
+            updateList('auditStrengths', data.audit.strengths);
+            updateList('auditWeaknesses', data.audit.weaknesses);
+            updateList('auditOpportunities', data.audit.opportunities);
+            
+            results.classList.remove('d-none');
+            
+            // Reload to update header metrics
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            alert('Audit failed: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Audit request failed.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    });
+}
+</script>
+{% endblock %}

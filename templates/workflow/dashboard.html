@@ -1,0 +1,214 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Smart Planner | {{ project.business_name }}{% endblock %}
+
+{% block menu_planner %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.workspace-header {
+    margin-bottom: 40px;
+}
+.workspace-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+.health-banner {
+    background: var(--color-navy-deep);
+    color: #FFF;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.health-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-copper);
+}
+
+.recommendation-card {
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+}
+.recommendation-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 6px;
+    background: var(--color-copper);
+}
+.action-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    margin-bottom: 12px;
+}
+.action-reason {
+    font-size: 0.9rem;
+    color: var(--color-sage-deep);
+    background: rgba(142,169,155,0.1);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.btn-action {
+    background: var(--color-navy-deep);
+    color: #FFF;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 50px;
+    border: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 16px;
+}
+.btn-action:hover {
+    background: #0f2438;
+    color: #FFF;
+}
+
+.timeline-list {
+    background: #FFF;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(200,190,175,0.4);
+}
+.timeline-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid rgba(200,190,175,0.2);
+}
+.timeline-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--color-copper);
+    border-radius: 50%;
+    margin-top: 6px;
+}
+.timeline-content h6 {
+    margin: 0 0 4px 0;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+}
+.timeline-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="workspace-header">
+    <h1 class="workspace-title">Smart Planner</h1>
+    <p class="text-muted">Your AI operating system. Review your progress and execute the next best action.</p>
+</div>
+
+<div class="health-banner">
+    <div>
+        <h4 style="color: rgba(255,255,255,0.7); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Brand Health Score</h4>
+        <div style="font-size: 1.1rem; max-width: 400px;">
+            Your brand is in the <strong>{{ workflow_state.get_current_stage_display }}</strong> phase. Complete the recommended actions to increase your health score.
+        </div>
+    </div>
+    <div class="health-score">
+        {{ health_data.health_score }}%
+    </div>
+</div>
+
+<div class="row">
+    <!-- RECOMMENDATIONS -->
+    <div class="col-md-7">
+        <h4 style="font-family: 'Playfair Display', serif; color: var(--color-navy-deep); margin-bottom: 24px;">AI Recommended Actions</h4>
+        
+        {% if recommendations %}
+            {% for rec in recommendations %}
+            <div class="recommendation-card">
+                <div class="action-title">{{ rec.title }}</div>
+                <p style="color: var(--color-text-muted);">{{ rec.description }}</p>
+                <div class="action-reason">
+                    <strong>Why?</strong> {{ rec.reason }}
+                </div>
+                
+                {% if rec.action_type == 'GENERATE_LOGO' %}
+                    <a href="{% url 'branding:logo_studio' project.pk %}" class="btn-action">Launch Studio</a>
+                {% elif rec.action_type == 'GENERATE_IDENTITY' %}
+                    <a href="{% url 'branding:brand_identity' project.pk %}" class="btn-action">Establish Identity</a>
+                {% elif rec.action_type == 'GENERATE_CREATIVE' %}
+                    <a href="{% url 'branding:creative_studio' project.pk %}" class="btn-action">Creative Studio</a>
+                {% elif rec.action_type == 'GENERATE_MARKETING' %}
+                    <a href="{% url 'branding:marketing_studio' project.pk %}" class="btn-action">Marketing Studio</a>
+                {% elif rec.action_type == 'GENERATE_SOCIAL' %}
+                    <a href="{% url 'branding:social_studio' project.pk %}" class="btn-action">Social Studio</a>
+                {% elif rec.action_type == 'GENERATE_CAMPAIGN' %}
+                    <a href="{% url 'branding:campaign_studio' project.pk %}" class="btn-action">Campaign Studio</a>
+                {% elif rec.action_type == 'GENERATE_REPORTS' %}
+                    <a href="{% url 'branding:reports' project.pk %}" class="btn-action">Executive Reports</a>
+                {% elif rec.action_type == 'EXPORT_KIT' %}
+                    <a href="{% url 'branding:downloads' project.pk %}" class="btn-action">Export Brand Kit</a>
+                {% elif rec.action_type == 'REVIEW_HEALTH' %}
+                    <a href="{% url 'branding:analytics' project.pk %}" class="btn-action">Review Health</a>
+                {% else %}
+                    <a href="#" class="btn-action">Proceed</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="recommendation-card" style="text-align: center;">
+                <h4 style="color: var(--color-sage-deep);">You're all caught up!</h4>
+                <p>No immediate actions required. Monitor your calendar and brand health.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="col-md-5">
+        <h4 style="font-family: 'Playfair Display', serif; color: var(--color-navy-deep); margin-bottom: 24px;">Recent Activity</h4>
+        
+        <div class="timeline-list">
+            {% if recent_activity %}
+                {% for log in recent_activity %}
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h6>{{ log.action }}</h6>
+                        <p>{{ log.description }}</p>
+                        <p style="font-size: 0.75rem; color: #AAA; margin-top: 4px;">{{ log.timestamp|timesince }} ago</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center" style="margin: 0;">No activity yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,378 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}{{ project.business_name }} Overview | BrandCraft{% endblock %}
+
+{% block menu_overview %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+}
+
+.overview-card {
+    background: #FFFFFF;
+    border-radius: 24px;
+    border: 1px solid rgba(200,190,175,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,.04);
+    padding: 32px;
+}
+
+.focus-card {
+    grid-column: span 8;
+}
+@media (max-width: 991px) {
+    .focus-card { grid-column: span 12; }
+}
+
+.side-card {
+    grid-column: span 4;
+}
+@media (max-width: 991px) {
+    .side-card { grid-column: span 12; }
+}
+
+.badge-pill {
+    background: rgba(216,174,104,0.12);
+    color: var(--color-gold-primary);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid rgba(216,174,104,0.2);
+}
+
+.stat-item {
+    text-align: center;
+    background: var(--color-bg-main);
+    border: 1px solid rgba(200,190,175,0.25);
+    border-radius: 16px;
+    padding: 20px;
+}
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+}
+.stat-label {
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="overview-grid">
+    <!-- Main Focus Details -->
+    <div class="overview-card focus-card d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h1 class="fw-bold" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep); font-size:2.4rem;">{{ project.business_name }}</h1>
+                <div class="d-flex align-items-center gap-3">
+                    <p class="text-muted mb-0">Project Workspace Overview</p>
+                    <button class="btn btn-sm btn-light-pill px-3 py-1 border-0" data-bs-toggle="modal" data-bs-target="#editBrandModal" style="font-size:0.8rem; background:rgba(216,174,104,0.1); color:var(--color-gold-primary); font-weight:600;">📝 Edit Profile</button>
+                </div>
+            </div>
+            <span class="badge-pill">{{ project.industry }}</span>
+        </div>
+
+        <!-- Brand DNA Sections -->
+        <h5 class="fw-bold mt-4 mb-3" style="color:var(--color-navy-deep); font-family:'Playfair Display',serif;">Brand DNA</h5>
+        
+        <div class="row g-4 mb-2">
+            <!-- Mission & Vision -->
+            <div class="col-md-6">
+                <div class="h-100 p-4" style="background: rgba(248, 250, 252, 0.7); border-radius: 16px; border: 1px solid rgba(226, 232, 240, 0.8);">
+                    <div class="d-flex align-items-center mb-2 gap-2">
+                        <span style="background: #E8F5E9; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">🌱</span>
+                        <h6 class="fw-bold m-0" style="color:var(--color-navy-deep); font-size: 1rem;">Mission</h6>
+                    </div>
+                    <p style="color:var(--color-text-p); font-size:0.9rem; line-height:1.6; margin-bottom: 20px;">{{ project.brand_mission|default:"Mission not generated yet." }}</p>
+                    
+                    <div class="d-flex align-items-center mb-2 gap-2">
+                        <span style="background: #FFF3E0; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">🔭</span>
+                        <h6 class="fw-bold m-0" style="color:var(--color-navy-deep); font-size: 1rem;">Vision</h6>
+                    </div>
+                    <p style="color:var(--color-text-p); font-size:0.9rem; line-height:1.6; margin-bottom: 0;">{{ project.brand_vision|default:"Vision not generated yet." }}</p>
+                </div>
+            </div>
+            
+            <!-- USP & Voice -->
+            <div class="col-md-6">
+                <div class="h-100 p-4" style="background: rgba(248, 250, 252, 0.7); border-radius: 16px; border: 1px solid rgba(226, 232, 240, 0.8);">
+                    <div class="d-flex align-items-center mb-2 gap-2">
+                        <span style="background: #E3F2FD; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">⭐</span>
+                        <h6 class="fw-bold m-0" style="color:var(--color-navy-deep); font-size: 1rem;">Unique Selling Proposition</h6>
+                    </div>
+                    <p style="color:var(--color-text-p); font-size:0.9rem; line-height:1.6; margin-bottom: 20px;">{{ project.usp|default:"USP not generated yet." }}</p>
+                    
+                    <div class="d-flex align-items-center mb-2 gap-2">
+                        <span style="background: #FCE4EC; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">🗣️</span>
+                        <h6 class="fw-bold m-0" style="color:var(--color-navy-deep); font-size: 1rem;">Brand Voice</h6>
+                    </div>
+                    <p style="color:var(--color-text-p); font-size:0.9rem; line-height:1.6; margin-bottom: 0;">{{ project.brand_voice|default:project.brand_personality|default:"Voice not generated yet." }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Values & Audience -->
+        <div class="row g-4 mb-2">
+            <div class="col-md-12">
+                <div class="p-4" style="background: rgba(248, 250, 252, 0.7); border-radius: 16px; border: 1px solid rgba(226, 232, 240, 0.8);">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-2 gap-2">
+                                <span style="background: #F3E5F5; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">💎</span>
+                                <h6 class="fw-bold m-0" style="color:var(--color-navy-deep); font-size: 1rem;">Core Values</h6>
+                            </div>
+                            {% if project.brand_values %}
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                {% for val in project.brand_values %}
+                                <span class="badge" style="background:#E0E0E0; color:#424242;">{{ val }}</span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p style="color:var(--color-text-p); font-size:0.9rem;">Values not generated yet.</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 border-start ps-4">
+                            <div class="d-flex align-items-center mb-2 gap-2">
+                                <span style="background: #E0F2F1; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">👥</span>
+                                <h6 class="fw-bold m-0" style="color:var(--color-navy-deep); font-size: 1rem;">Target Audience</h6>
+                            </div>
+                            <p style="color:var(--color-text-p); font-size:0.9rem; line-height:1.6; margin-bottom: 0;">{{ project.target_audience }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-4">
+            <div class="col-4">
+                <div class="stat-item">
+                    <div class="stat-number">{{ assets_count }}</div>
+                    <div class="stat-label">Total Assets</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-item">
+                    <div class="stat-number">{{ completion_pct }}%</div>
+                    <div class="stat-label">Completion</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-item">
+                    <div class="stat-number">Active</div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Tools Grid -->
+        <h5 class="fw-bold mt-5 mb-3" style="color:var(--color-navy-deep);">Quick Tools</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <a href="{% url 'branding:logo_studio' project.pk %}" style="text-decoration: none; display: block;">
+                    <div class="stat-item" style="transition: all 0.2s ease; cursor: pointer; padding: 16px;" onmouseover="this.style.borderColor='var(--color-gold-primary)'" onmouseout="this.style.borderColor='rgba(200,190,175,0.25)'">
+                        <div style="font-size: 1.8rem; margin-bottom: 8px;">🎨</div>
+                        <div class="stat-label" style="color: var(--color-navy-deep);">Logo Studio</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{% url 'branding:brand_identity' project.pk %}" style="text-decoration: none; display: block;">
+                    <div class="stat-item" style="transition: all 0.2s ease; cursor: pointer; padding: 16px;" onmouseover="this.style.borderColor='var(--color-gold-primary)'" onmouseout="this.style.borderColor='rgba(200,190,175,0.25)'">
+                        <div style="font-size: 1.8rem; margin-bottom: 8px;">🏷️</div>
+                        <div class="stat-label" style="color: var(--color-navy-deep);">Identity</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{% url 'branding:marketing_studio' project.pk %}" style="text-decoration: none; display: block;">
+                    <div class="stat-item" style="transition: all 0.2s ease; cursor: pointer; padding: 16px;" onmouseover="this.style.borderColor='var(--color-gold-primary)'" onmouseout="this.style.borderColor='rgba(200,190,175,0.25)'">
+                        <div style="font-size: 1.8rem; margin-bottom: 8px;">✉️</div>
+                        <div class="stat-label" style="color: var(--color-navy-deep);">Marketing</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{% url 'branding:social_studio' project.pk %}" style="text-decoration: none; display: block;">
+                    <div class="stat-item" style="transition: all 0.2s ease; cursor: pointer; padding: 16px;" onmouseover="this.style.borderColor='var(--color-gold-primary)'" onmouseout="this.style.borderColor='rgba(200,190,175,0.25)'">
+                        <div style="font-size: 1.8rem; margin-bottom: 8px;">📱</div>
+                        <div class="stat-label" style="color: var(--color-navy-deep);">Social Media</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Mock Recent Activity -->
+        <h5 class="fw-bold mt-5 mb-3" style="color:var(--color-navy-deep);">Recent Activity</h5>
+        <div style="background: #fff; border: 1px solid rgba(200,190,175,0.25); border-radius: 16px; padding: 20px;">
+            <div class="d-flex align-items-center mb-3">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #38B391; margin-right: 12px;"></div>
+                <div class="flex-grow-1">
+                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--color-navy-deep);">Brand Identity Snapshot Updated</div>
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">Just now</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center mb-3">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-gold-primary); margin-right: 12px;"></div>
+                <div class="flex-grow-1">
+                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--color-navy-deep);">Generated Catchy Business Name</div>
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">2 hours ago</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #598CF6; margin-right: 12px;"></div>
+                <div class="flex-grow-1">
+                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--color-navy-deep);">Created Project Workspace</div>
+                    <div style="font-size: 0.75rem; color: var(--color-text-muted);">1 day ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Actions & Recommendations -->
+    <div class="overview-card side-card d-flex flex-column justify-content-between">
+        <div>
+            <h4 class="fw-bold mb-4" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">AI Advisor</h4>
+            
+            <div class="mb-4" style="background:rgba(143,169,155,0.1); border-radius:16px; padding:20px; border:1px solid rgba(143,169,155,0.25);">
+                <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--color-sage-muted); margin-bottom:6px;">Next Recommended Step</div>
+                <div style="font-size:0.95rem; font-weight:600; color:var(--color-navy-deep); margin-bottom:12px;">Lock in your Logo Design and Visual Assets</div>
+                <p class="small text-muted mb-0">Use the Logo Studio to create logo icons, customize color variations, and compile typography guides.</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small text-muted">Brand Personality</label>
+                <div style="font-weight:600; font-size:1.05rem; color:var(--color-gold-primary);">{{ project.brand_personality|default:"Elegant & Premium" }}</div>
+            </div>
+
+            <div>
+                <label class="form-label small text-muted">Aesthetic Style</label>
+                <div style="font-weight:600; font-size:1.05rem; color:var(--color-navy-deep);">{{ project.preferred_style|default:"Minimalist Serif" }}</div>
+            </div>
+            
+            <hr style="margin: 24px 0; border-color: rgba(200,190,175,0.2);">
+            
+            <!-- Brand Snapshot -->
+            <div class="mb-4">
+                <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--color-sage-muted); margin-bottom:12px;">Brand Visuals</div>
+                
+                <label class="form-label small text-muted">Primary Palette</label>
+                <div class="d-flex gap-2 mb-3">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background-color: {{ colors.primary|default:'#17344F' }}; border: 1px solid rgba(0,0,0,0.1);" title="{{ colors.primary|default:'#17344F' }}"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background-color: {{ colors.secondary|default:'#C68B3C' }}; border: 1px solid rgba(0,0,0,0.1);" title="{{ colors.secondary|default:'#C68B3C' }}"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background-color: {{ colors.background|default:'#FBF8F2' }}; border: 1px solid rgba(0,0,0,0.1);" title="{{ colors.background|default:'#FBF8F2' }}"></div>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background-color: {{ colors.accent|default:'#8FA99B' }}; border: 1px solid rgba(0,0,0,0.1);" title="{{ colors.accent|default:'#8FA99B' }}"></div>
+                </div>
+                
+                <label class="form-label small text-muted">Typography</label>
+                <div style="font-weight:600; font-size:1.05rem; color:var(--color-navy-deep);">{{ fonts.primary|default:'Playfair Display' }}</div>
+                <div style="font-size:0.85rem; color:var(--color-text-muted);">{{ fonts.secondary|default:'Inter' }}</div>
+            </div>
+        </div>
+
+        <a href="{% url 'branding:logo_studio' project.pk %}" class="btn btn-dark-pill w-100 py-3 mt-4">Open Logo Studio &rarr;</a>
+    </div>
+</div>
+
+<!-- Edit Brand Profile Modal -->
+<div class="modal fade" id="editBrandModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:24px; border:none; box-shadow:0 20px 50px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold" style="font-family:'Playfair Display',serif; font-size:1.8rem; color:var(--color-navy-deep);">Refine Brand Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'branding:project_detail' project.pk %}">
+                {% csrf_token %}
+                <div class="modal-body px-4 pb-4">
+                    <p class="text-muted small mb-4">Update your business details or use the AI suggestion assistant next to each field to instantly draft high-converting, catchy alternatives!</p>
+                    
+                    <!-- Business Name -->
+                    <div class="mb-4">
+                        <label class="form-label small text-muted font-monospace">BUSINESS NAME</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="business_name" id="editName" style="border-radius:12px; padding:12px;" value="{{ project.business_name }}" required>
+                            <button class="btn btn-outline-warning" type="button" onclick="suggestCatchyName()" style="border-radius:0 12px 12px 0; font-weight:600;">✨ AI Catchy Suggestion</button>
+                        </div>
+                        <div class="form-text small text-muted" id="nameSuggestions" style="display:none; font-size:0.8rem; margin-top:6px;">
+                            Try these: <span class="badge bg-light text-dark border p-2 cursor-pointer" onclick="selectSuggestion('editName', 'ManaCraft')">ManaCraft</span> 
+                            <span class="badge bg-light text-dark border p-2 cursor-pointer" onclick="selectSuggestion('editName', 'EcoThreads')">EcoThreads</span> 
+                            <span class="badge bg-light text-dark border p-2 cursor-pointer" onclick="selectSuggestion('editName', 'FreshFold')">FreshFold</span>
+                        </div>
+                    </div>
+
+                    <!-- Industry -->
+                    <div class="mb-4">
+                        <label class="form-label small text-muted font-monospace">INDUSTRY</label>
+                        <select class="form-control" name="industry" style="border-radius:12px; padding:12px;">
+                            <option value="SaaS & Technology" {% if project.industry == 'SaaS & Technology' %}selected{% endif %}>SaaS & Technology</option>
+                            <option value="E-Commerce & Retail" {% if project.industry == 'E-Commerce & Retail' %}selected{% endif %}>E-Commerce & Retail</option>
+                            <option value="Health & Wellness" {% if project.industry == 'Health & Wellness' %}selected{% endif %}>Health & Wellness</option>
+                            <option value="Food & Beverage" {% if project.industry == 'Food & Beverage' %}selected{% endif %}>Food & Beverage</option>
+                            <option value="Finance & Real Estate" {% if project.industry == 'Finance & Real Estate' %}selected{% endif %}>Finance & Real Estate</option>
+                            <option value="Creative Agency" {% if project.industry == 'Creative Agency' %}selected{% endif %}>Creative Agency</option>
+                        </select>
+                    </div>
+
+                    <!-- Target Audience -->
+                    <div class="mb-4">
+                        <label class="form-label small text-muted font-monospace">TARGET DEMOGRAPHICS</label>
+                        <div class="input-group">
+                            <textarea class="form-control" name="target_audience" id="editAudience" rows="2" style="border-radius:12px; padding:12px;" required>{{ project.target_audience }}</textarea>
+                            <button class="btn btn-outline-warning" type="button" onclick="suggestCatchyAudience()" style="border-radius:0 12px 12px 0; font-weight:600;">✨ AI Catchy Suggestion</button>
+                        </div>
+                        <div class="form-text small text-muted" id="audienceSuggestions" style="display:none; font-size:0.8rem; margin-top:6px;">
+                            Try these: <span class="badge bg-light text-dark border p-2 cursor-pointer" style="white-space:normal; text-align:left;" onclick="selectSuggestion('editAudience', 'Modern families, style-conscious parents of toddlers, and green lifestyle shoppers.')">"Modern families, style-conscious parents of toddlers, and green lifestyle shoppers."</span>
+                        </div>
+                    </div>
+
+                    <!-- Business Goal -->
+                    <div class="mb-4">
+                        <label class="form-label small text-muted font-monospace">BRAND GOAL & VISION</label>
+                        <div class="input-group">
+                            <textarea class="form-control" name="business_idea" id="editGoal" rows="2" style="border-radius:12px; padding:12px;" required>{{ project.business_idea }}</textarea>
+                            <button class="btn btn-outline-warning" type="button" onclick="suggestCatchyGoal()" style="border-radius:0 12px 12px 0; font-weight:600;">✨ AI Catchy Suggestion</button>
+                        </div>
+                        <div class="form-text small text-muted" id="goalSuggestions" style="display:none; font-size:0.8rem; margin-top:6px;">
+                            Try these: <span class="badge bg-light text-dark border p-2 cursor-pointer" style="white-space:normal; text-align:left;" onclick="selectSuggestion('editGoal', 'Delivering premium, carbon-neutral organic children\'s clothing and fresh farm-to-table products directly to homes.')">"Delivering premium, carbon-neutral organic children's clothing and fresh farm-to-table products directly to homes."</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark-pill px-4">Save & Refine Profile &rarr;</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function suggestCatchyName() {
+    document.getElementById("nameSuggestions").style.display = "block";
+    showToast("Catchy business name recommendations generated!");
+}
+
+function suggestCatchyAudience() {
+    document.getElementById("audienceSuggestions").style.display = "block";
+    showToast("Catchy target customer profile suggestions generated!");
+}
+
+function suggestCatchyGoal() {
+    document.getElementById("goalSuggestions").style.display = "block";
+    showToast("Catchy goal & vision copies suggested!");
+}
+
+function selectSuggestion(inputId, value) {
+    document.getElementById(inputId).value = value;
+    showToast("Applied catchy text suggestion!");
+}
+</script>
+{% endblock %}

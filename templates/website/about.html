@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+
+{% block title %}About BrandCraft | The AI Branding OS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .about-hero {
+        padding: 140px 0 100px;
+        background: linear-gradient(135deg, rgba(251, 248, 242, 0) 0%, rgba(240, 235, 225, 0.6) 100%);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 800;
+        font-size: 4rem;
+        color: var(--color-navy-deep, #0A1128);
+        letter-spacing: -1px;
+        margin-bottom: 20px;
+    }
+
+    .hero-subtitle {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.25rem;
+        color: var(--color-navy-sec, #1C2541);
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+
+    /* Mission Section */
+    .mission-section {
+        padding: 100px 0;
+        background: #fff;
+    }
+
+    .glass-panel-custom {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(200, 190, 175, 0.4);
+        border-radius: 24px;
+        padding: 60px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.03);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-panel-custom::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 6px;
+        background: linear-gradient(90deg, #D4AF37, #F3E5AB);
+    }
+
+    /* Core Architecture Section */
+    .architecture-section {
+        padding: 100px 0;
+        background: var(--color-bg-primary, #FBF8F2);
+    }
+
+    .section-heading {
+        font-family: 'Playfair Display', serif;
+        font-weight: 800;
+        font-size: 2.8rem;
+        color: var(--color-navy-deep, #0A1128);
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .agent-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 40px 30px;
+        height: 100%;
+        border: 1px solid rgba(0,0,0,0.04);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        position: relative;
+        z-index: 1;
+    }
+
+    .agent-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px rgba(10, 17, 40, 0.08);
+        border-color: rgba(212, 175, 55, 0.3); /* Gold tint on hover */
+    }
+
+    .agent-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(212, 175, 55, 0.1);
+        color: #D4AF37;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .agent-card:hover .agent-icon {
+        background: #D4AF37;
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    .agent-title {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: var(--color-navy-deep, #0A1128);
+        margin-bottom: 12px;
+    }
+
+    .agent-desc {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* Stats Section */
+    .stats-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 30px;
+        padding: 60px 0;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        margin-top: 60px;
+    }
+
+    .stat-box {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: #D4AF37;
+        margin-bottom: 8px;
+    }
+
+    .stat-label {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        color: var(--color-navy-sec, #1C2541);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="about-hero">
+    <div class="bc-container">
+        <h1 class="hero-title gsap-fade-up">Redefining Brand Creation</h1>
+        <p class="hero-subtitle gsap-fade-up" style="animation-delay: 0.1s;">
+            We are transforming how businesses build their identities through an intelligent, autonomous ecosystem of specialized AI agents.
+        </p>
+    </div>
+</section>
+
+<!-- Mission Section -->
+<section class="mission-section">
+    <div class="bc-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="glass-panel-custom gsap-fade-up">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-4 mb-md-0">
+                            <h2 style="font-family: 'Playfair Display', serif; font-weight: 800; color: #0A1128; font-size: 2.5rem;">Our Mission</h2>
+                        </div>
+                        <div class="col-md-7">
+                            <p style="font-size: 1.1rem; color: #495057; line-height: 1.8;">
+                                BrandCraft was built to democratize enterprise-grade branding. Instead of paying tens of thousands of dollars and waiting months for creative agencies, our <strong>AI Branding Operating System</strong> handles strategy, visual design, and marketing autonomously—delivering world-class results in minutes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-container gsap-fade-up">
+                    <div class="stat-box">
+                        <div class="stat-number">7</div>
+                        <div class="stat-label">Specialized AI Agents</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Autonomous Generation</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Creative Possibilities</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Architecture / Agents Section -->
+<section class="architecture-section" id="architecture">
+    <div class="bc-container">
+        <h2 class="section-heading gsap-fade-up">The BrandCraft Engine</h2>
+        <p class="text-center mb-5" style="max-width: 600px; margin: 0 auto; color: #6c757d;">Our platform is powered by a multi-agent architecture. Each agent acts as an expert in a specific domain, collaborating seamlessly to build your brand.</p>
+        
+        <div class="row g-4 mt-4">
+            <!-- Agent 1 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="agent-card organic-card">
+                    <div class="agent-icon">🧠</div>
+                    <h3 class="agent-title">Brand Strategist</h3>
+                    <p class="agent-desc">Develops your core identity, positioning, mission, and target audience profiles based on market analysis.</p>
+                </div>
+            </div>
+
+            <!-- Agent 2 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="agent-card organic-card">
+                    <div class="agent-icon">🎨</div>
+                    <h3 class="agent-title">Visual Architect</h3>
+                    <p class="agent-desc">Generates logos, selects typography, and builds cohesive color palettes that perfectly reflect your strategy.</p>
+                </div>
+            </div>
+
+            <!-- Agent 3 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="agent-card organic-card">
+                    <div class="agent-icon">✍️</div>
+                    <h3 class="agent-title">Naming & Slogan</h3>
+                    <p class="agent-desc">Brainstorms catchy, memorable brand names and taglines that resonate with your target demographic.</p>
+                </div>
+            </div>
+
+            <!-- Agent 4 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="agent-card organic-card">
+                    <div class="agent-icon">📱</div>
+                    <h3 class="agent-title">Social Media Lead</h3>
+                    <p class="agent-desc">Creates tailored content strategies, post schedules, and platform-specific tone-of-voice guidelines.</p>
+                </div>
+            </div>
+
+            <!-- Agent 5 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="agent-card organic-card">
+                    <div class="agent-icon">📈</div>
+                    <h3 class="agent-title">Campaign Manager</h3>
+                    <p class="agent-desc">Designs comprehensive launch campaigns, email marketing sequences, and advertising strategies.</p>
+                </div>
+            </div>
+
+            <!-- Agent 6 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="agent-card organic-card">
+                    <div class="agent-icon">✨</div>
+                    <h3 class="agent-title">Quality Assurance</h3>
+                    <p class="agent-desc">An independent reviewer that audits the generated assets for consistency, uniqueness, and overall quality.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section style="padding: 100px 0; background: #fff; text-align: center;">
+    <div class="bc-container">
+        <h2 style="font-family: 'Playfair Display', serif; font-weight: 800; color: #0A1128; font-size: 2.5rem; margin-bottom: 20px;">Ready to build your legacy?</h2>
+        <p style="color: #6c757d; font-size: 1.1rem; margin-bottom: 40px;">Join the next generation of brand creation.</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-dark-pill px-5 py-3" style="font-size: 1.1rem; background: var(--color-gold-primary, #D4AF37); border: none; color: #fff;">Get Started Now &rarr;</a>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initial hero animations
+    gsap.from('.gsap-fade-up', {
+        y: 40,
+        opacity: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: 'power3.out',
+        delay: 0.2
+    });
+</script>
+{% endblock %}

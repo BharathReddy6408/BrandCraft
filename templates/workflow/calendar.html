@@ -1,0 +1,534 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Brand Calendar | {{ project.business_name }}{% endblock %}
+
+{% block menu_calendar %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.workspace-header {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.workspace-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+/* Calendar Layout */
+.calendar-container {
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.35);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+}
+
+.calendar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(200,190,175,0.25);
+}
+
+.calendar-nav-btn {
+    background: #F8F5F0;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: var(--color-navy-deep);
+}
+.calendar-nav-btn:hover {
+    background: var(--color-navy-deep);
+    color: #FFF;
+}
+
+.month-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+}
+
+.view-toggle {
+    display: flex;
+    background: #F8F5F0;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 2px;
+}
+.view-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    border: none;
+    background: transparent;
+    transition: all 0.2s;
+}
+.view-btn.active {
+    background: #FFF;
+    color: var(--color-navy-deep);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    padding: 0;
+}
+.calendar-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid rgba(200,190,175,0.2);
+}
+.day-header-cell {
+    padding: 12px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+.calendar-cell {
+    min-height: 110px;
+    border-right: 1px solid rgba(200,190,175,0.15);
+    border-bottom: 1px solid rgba(200,190,175,0.15);
+    padding: 10px;
+    position: relative;
+    transition: background 0.2s;
+}
+.calendar-cell:hover {
+    background: rgba(216,174,104,0.04);
+}
+.calendar-cell:nth-child(7n) {
+    border-right: none;
+}
+.calendar-cell.other-month .day-number {
+    color: rgba(200,190,175,0.5);
+}
+.calendar-cell.today {
+    background: rgba(216,174,104,0.06);
+}
+.calendar-cell.today .day-number {
+    background: var(--color-gold-primary);
+    color: #FFF;
+}
+
+.day-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-navy-deep);
+    margin-bottom: 6px;
+}
+
+/* Event Chips */
+.event-chip {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 5px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.event-chip:hover { opacity: 0.8; }
+.event-chip.social { background: rgba(89,140,246,0.15); color: #598CF6; }
+.event-chip.campaign { background: rgba(216,174,104,0.2); color: #C68B3C; }
+.event-chip.marketing { background: rgba(56,179,145,0.15); color: #38B391; }
+.event-chip.brand { background: rgba(181,114,248,0.15); color: #B572F8; }
+.event-chip.deadline { background: rgba(231,76,60,0.12); color: #E74C3C; }
+
+/* Legend */
+.legend-row {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    padding: 16px 32px;
+    border-top: 1px solid rgba(200,190,175,0.2);
+    background: #FDFBF7;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+
+/* Upcoming Panel */
+.upcoming-panel {
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.35);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+.upcoming-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(200,190,175,0.2);
+}
+.upcoming-item:last-child { border-bottom: none; }
+.event-date-badge {
+    min-width: 48px;
+    height: 52px;
+    background: linear-gradient(145deg, #FDFBF7, #F3EDE4);
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.event-date-badge .day { font-size: 1.4rem; font-weight: 800; color: var(--color-navy-deep); line-height: 1; }
+.event-date-badge .month { font-size: 0.65rem; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.add-event-btn {
+    background: var(--color-navy-deep);
+    color: #FFF;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.add-event-btn:hover { background: #0f2438; color: #FFF; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="workspace-header">
+    <div>
+        <h1 class="workspace-title">Brand Calendar</h1>
+        <p class="text-muted">Schedule and manage your marketing content, social posts, and brand events.</p>
+    </div>
+    <button class="add-event-btn" onclick="openAddEvent()">
+        <span>+</span> Add Event
+    </button>
+</div>
+
+<div class="row g-4">
+    <!-- MAIN CALENDAR -->
+    <div class="col-lg-9">
+        <div class="calendar-container">
+            <!-- Toolbar -->
+            <div class="calendar-toolbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="calendar-nav-btn" onclick="changeMonth(-1)">&#8592;</button>
+                    <span class="month-title" id="monthTitle">August 2026</span>
+                    <button class="calendar-nav-btn" onclick="changeMonth(1)">&#8594;</button>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="calendar-nav-btn" onclick="goToToday()" title="Today" style="width:auto; padding:0 16px; font-size:0.8rem; font-weight:600;">Today</button>
+                    <div class="view-toggle">
+                        <button class="view-btn active" id="monthViewBtn" onclick="setView('month')">Month</button>
+                        <button class="view-btn" id="weekViewBtn" onclick="setView('week')">Week</button>
+                        <button class="view-btn" id="listViewBtn" onclick="setView('list')">List</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day Names -->
+            <div class="calendar-days-header">
+                <div class="day-header-cell">Sun</div>
+                <div class="day-header-cell">Mon</div>
+                <div class="day-header-cell">Tue</div>
+                <div class="day-header-cell">Wed</div>
+                <div class="day-header-cell">Thu</div>
+                <div class="day-header-cell">Fri</div>
+                <div class="day-header-cell">Sat</div>
+            </div>
+
+            <!-- Calendar Body -->
+            <div class="calendar-body" id="calendarBody"></div>
+
+            <!-- Legend -->
+            <div class="legend-row">
+                <div class="legend-item"><div class="legend-dot" style="background:#598CF6;"></div> Social Post</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#C68B3C;"></div> Campaign</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#38B391;"></div> Marketing</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#B572F8;"></div> Brand Event</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#E74C3C;"></div> Deadline</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPCOMING PANEL -->
+    <div class="col-lg-3">
+        <div class="upcoming-panel">
+            <h6 class="fw-bold mb-4" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep); font-size:1.1rem;">Upcoming Events</h6>
+            <div id="upcomingList">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Quick Add Tips -->
+        <div class="upcoming-panel mt-4" style="background: linear-gradient(135deg, #FDFBF7, #F3EDE4);">
+            <h6 class="fw-bold mb-3" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">💡 Quick Links</h6>
+            <div class="d-flex flex-column gap-2">
+                <a href="{% url 'workflow:queue' project.pk %}" class="btn btn-sm" style="background:#FFF; border:1px solid rgba(200,190,175,0.4); border-radius:10px; font-size:0.82rem; font-weight:600; color:var(--color-navy-deep);">📋 Content Queue</a>
+                <a href="{% url 'branding:social_studio' project.pk %}" class="btn btn-sm" style="background:#FFF; border:1px solid rgba(200,190,175,0.4); border-radius:10px; font-size:0.82rem; font-weight:600; color:var(--color-navy-deep);">📱 Social Studio</a>
+                <a href="{% url 'branding:campaign_studio' project.pk %}" class="btn btn-sm" style="background:#FFF; border:1px solid rgba(200,190,175,0.4); border-radius:10px; font-size:0.82rem; font-weight:600; color:var(--color-navy-deep);">📣 Campaign Studio</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Modal -->
+<div id="addEventModal" style="display:none; position:fixed; inset:0; background:rgba(23,52,79,0.35); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center;">
+    <div style="background:#FFF; border-radius:20px; padding:36px; width:420px; box-shadow:0 30px 60px rgba(0,0,0,0.15);">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Add Event</h5>
+            <span style="cursor:pointer; font-size:1.4rem; color:var(--color-text-muted);" onclick="closeAddEvent()">&times;</span>
+        </div>
+        <div class="d-flex flex-column gap-3">
+            <div>
+                <label class="form-label fw-semibold" style="font-size:0.85rem;">Event Title</label>
+                <input type="text" id="newEventTitle" class="form-control" placeholder="e.g. Launch Instagram Campaign" style="border-radius:10px; font-size:0.9rem;">
+            </div>
+            <div>
+                <label class="form-label fw-semibold" style="font-size:0.85rem;">Date</label>
+                <input type="date" id="newEventDate" class="form-control" style="border-radius:10px; font-size:0.9rem;">
+            </div>
+            <div>
+                <label class="form-label fw-semibold" style="font-size:0.85rem;">Type</label>
+                <select id="newEventType" class="form-select" style="border-radius:10px; font-size:0.9rem;">
+                    <option value="social">Social Post</option>
+                    <option value="campaign">Campaign</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="brand">Brand Event</option>
+                    <option value="deadline">Deadline</option>
+                </select>
+            </div>
+            <button onclick="saveEvent()" class="add-event-btn w-100 justify-content-center mt-2" style="display:flex;">Save Event</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// State
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+const TODAY = new Date();
+
+// Load events from localStorage
+function loadEvents() {
+    const key = `bc_calendar_{{ project.pk }}`;
+    try { return JSON.parse(localStorage.getItem(key)) || []; }
+    catch(e) { return []; }
+}
+function saveEvents(events) {
+    localStorage.setItem(`bc_calendar_{{ project.pk }}`, JSON.stringify(events));
+}
+
+// Demo events pre-populated
+function initDemoEvents() {
+    const key = `bc_calendar_{{ project.pk }}`;
+    if (!localStorage.getItem(key)) {
+        const y = TODAY.getFullYear(), m = TODAY.getMonth() + 1;
+        const pad = n => String(n).padStart(2,'0');
+        const demos = [
+            { title: 'Instagram Post', date: `${y}-${pad(m)}-${pad(5)}`, type: 'social' },
+            { title: 'Email Campaign Launch', date: `${y}-${pad(m)}-${pad(10)}`, type: 'campaign' },
+            { title: 'Blog Article Drop', date: `${y}-${pad(m)}-${pad(14)}`, type: 'marketing' },
+            { title: 'Brand Guidelines Review', date: `${y}-${pad(m)}-${pad(18)}`, type: 'brand' },
+            { title: 'Q3 Social Report', date: `${y}-${pad(m)}-${pad(25)}`, type: 'deadline' },
+            { title: 'LinkedIn Post', date: `${y}-${pad(m)}-${pad(22)}`, type: 'social' },
+        ];
+        saveEvents(demos);
+    }
+}
+initDemoEvents();
+
+function renderCalendar() {
+    const events = loadEvents();
+    const year = currentYear, month = currentMonth;
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    
+    document.getElementById('monthTitle').textContent = `${monthNames[month]} ${year}`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrev = new Date(year, month, 0).getDate();
+
+    let html = '';
+    let totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+    for (let i = 0; i < totalCells; i++) {
+        let dayNum, isOtherMonth = false;
+        if (i < firstDay) {
+            dayNum = daysInPrev - firstDay + i + 1;
+            isOtherMonth = true;
+        } else if (i >= firstDay + daysInMonth) {
+            dayNum = i - firstDay - daysInMonth + 1;
+            isOtherMonth = true;
+        } else {
+            dayNum = i - firstDay + 1;
+        }
+
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+        const isToday = !isOtherMonth && year === TODAY.getFullYear() && month === TODAY.getMonth() && dayNum === TODAY.getDate();
+        const dayEvents = events.filter(e => e.date === dateStr);
+
+        html += `<div class="calendar-cell${isOtherMonth ? ' other-month' : ''}${isToday ? ' today' : ''}" onclick="handleCellClick('${dateStr}')">
+            <div class="day-number">${dayNum}</div>
+            ${dayEvents.slice(0,3).map(e => `<span class="event-chip ${e.type}" title="${e.title}">${e.title}</span>`).join('')}
+            ${dayEvents.length > 3 ? `<span style="font-size:0.7rem; color:var(--color-text-muted); font-weight:600;">+${dayEvents.length-3} more</span>` : ''}
+        </div>`;
+    }
+
+    document.getElementById('calendarBody').innerHTML = html;
+    renderUpcoming(events);
+}
+
+function renderUpcoming(events) {
+    const todayStr = TODAY.toISOString().split('T')[0];
+    const upcoming = events
+        .filter(e => e.date >= todayStr)
+        .sort((a,b) => a.date.localeCompare(b.date))
+        .slice(0, 6);
+    
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const typeLabels = { social:'Social Post', campaign:'Campaign', marketing:'Marketing', brand:'Brand Event', deadline:'Deadline' };
+    const typeColors = { social:'#598CF6', campaign:'#C68B3C', marketing:'#38B391', brand:'#B572F8', deadline:'#E74C3C' };
+
+    if (!upcoming.length) {
+        document.getElementById('upcomingList').innerHTML = '<p class="text-muted text-center" style="font-size:0.85rem; margin:0;">No upcoming events. Click + Add Event to get started.</p>';
+        return;
+    }
+    
+    document.getElementById('upcomingList').innerHTML = upcoming.map(e => {
+        const d = new Date(e.date + 'T12:00:00');
+        return `<div class="upcoming-item">
+            <div class="event-date-badge">
+                <span class="day">${d.getDate()}</span>
+                <span class="month">${monthNames[d.getMonth()]}</span>
+            </div>
+            <div>
+                <div style="font-weight:600; font-size:0.9rem; color:var(--color-navy-deep);">${e.title}</div>
+                <span style="font-size:0.75rem; font-weight:700; color:${typeColors[e.type]};">${typeLabels[e.type] || e.type}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function changeMonth(dir) {
+    currentMonth += dir;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar();
+}
+
+function goToToday() {
+    currentYear = TODAY.getFullYear();
+    currentMonth = TODAY.getMonth();
+    renderCalendar();
+}
+
+function setView(v) {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(v + 'ViewBtn').classList.add('active');
+    // Only month view is fully implemented
+    renderCalendar();
+}
+
+function handleCellClick(dateStr) {
+    document.getElementById('newEventDate').value = dateStr;
+    openAddEvent();
+}
+
+function openAddEvent() {
+    const modal = document.getElementById('addEventModal');
+    modal.style.display = 'flex';
+    gsap.fromTo(modal.firstElementChild, {scale:0.92, opacity:0}, {scale:1, opacity:1, duration:0.25, ease:'power2.out'});
+}
+
+function closeAddEvent() {
+    gsap.to(document.getElementById('addEventModal').firstElementChild, {
+        scale: 0.92, opacity: 0, duration: 0.2, ease:'power2.in',
+        onComplete: () => { document.getElementById('addEventModal').style.display = 'none'; }
+    });
+}
+
+function saveEvent() {
+    const title = document.getElementById('newEventTitle').value.trim();
+    const date = document.getElementById('newEventDate').value;
+    const type = document.getElementById('newEventType').value;
+    if (!title || !date) { alert('Please enter a title and date.'); return; }
+    const events = loadEvents();
+    events.push({ title, date, type });
+    saveEvents(events);
+    document.getElementById('newEventTitle').value = '';
+    document.getElementById('newEventDate').value = '';
+    closeAddEvent();
+    renderCalendar();
+    if (typeof showToast === 'function') showToast('Event added to calendar!');
+}
+
+// Close modal on backdrop click
+document.getElementById('addEventModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAddEvent();
+});
+
+// Initial render
+renderCalendar();
+
+// Animate cards on load
+window.addEventListener('load', () => {
+    gsap.fromTo('.calendar-container, .upcoming-panel', 
+        { y: 20, opacity: 0 },
+        { duration: 0.5, y: 0, opacity: 1, stagger: 0.1, ease: 'power2.out' }
+    );
+});
+</script>
+{% endblock %}

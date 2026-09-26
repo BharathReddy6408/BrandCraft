@@ -1,0 +1,43 @@
+// EXAMPLE 1: Basic String Variables
+// If your JSON input looks like this:
+// {
+//   "brand_name": "EcoCoffee",
+//   "industry": "Sustainable Beverages",
+//   "tone": "Warm and inviting"
+// }
+
+// You declare them in your prompt like this:
+Write a creative Instagram caption for a new product launch.
+Brand: {{ brand_name }}
+Industry: {{ industry }}
+Tone of Voice: {{ tone }}
+
+
+// ---------------------------------------------------------
+// EXAMPLE 2: Working with JSON Arrays (Lists)
+// If your JSON input has a list of items:
+// {
+//   "target_audience": ["College Students", "Young Professionals", "Coffee Enthusiasts"],
+//   "key_features": "Fair-trade, Zero-waste packaging"
+// }
+
+// You can loop through them using Jinja2/Django template syntax:
+Create a marketing email highlighting these features: {{ key_features }}.
+Ensure the message appeals to our target audiences:
+{% for audience in target_audience %}
+- {{ audience }}
+{% endfor %}
+
+
+// ---------------------------------------------------------
+// EXAMPLE 3: Complex Nested JSON Objects
+// If your JSON input is nested:
+// {
+//   "company": {
+//     "name": "TechNova",
+//     "location": "San Francisco"
+//   }
+// }
+
+// You can access nested fields using dot notation:
+Write a compelling 'About Us' section for {{ company.name }}, a startup based in {{ company.location }}.

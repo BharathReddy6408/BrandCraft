@@ -1,0 +1,182 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Content Moderation | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.moderation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.mod-card {
+    overflow: hidden;
+}
+
+.mod-preview {
+    width: 100%;
+    height: 200px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.mod-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.mod-preview-text {
+    padding: 24px;
+    font-family: 'Inter', sans-serif;
+    color: var(--admin-text-main);
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-align: center;
+    font-style: italic;
+}
+
+.mod-info {
+    padding: 20px;
+}
+.mod-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--admin-text-muted);
+    margin-bottom: 12px;
+}
+
+.mod-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.mod-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--admin-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+.mod-username {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--admin-text-main);
+}
+
+.mod-actions {
+    display: flex;
+    border-top: 1px solid var(--admin-border);
+}
+.btn-mod {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-mod.approve {
+    color: #16a34a;
+}
+.btn-mod.approve:hover {
+    background: #dcfce7;
+}
+.btn-mod.reject {
+    color: #dc2626;
+    border-left: 1px solid var(--admin-border);
+}
+.btn-mod.reject:hover {
+    background: #fee2e2;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--admin-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Content Moderation</h1>
+        <p>Review flagged generated content before publishing to public portfolios.</p>
+    </div>
+</div>
+
+<div class="moderation-grid">
+    {% for asset in assets %}
+    <div class="mod-card card-glass">
+        <div class="mod-preview">
+            {% if asset.file_upload %}
+                <img src="{{ asset.file_upload.url }}" alt="{{ asset.title }}">
+            {% else %}
+                <div class="mod-preview-text">"{{ asset.description|truncatechars:100 }}"</div>
+            {% endif %}
+        </div>
+        
+        <div class="mod-info">
+            <div class="mod-meta">
+                <span>{{ asset.category.name|default:"Asset" }}</span>
+                <span>Status: {{ asset.get_status_display }}</span>
+            </div>
+            
+            <div class="mod-user">
+                <div class="mod-avatar">{{ asset.project.user.username|make_list|first|upper }}</div>
+                <div class="mod-username">{{ asset.project.user.username }}</div>
+            </div>
+        </div>
+        
+        <div class="mod-actions">
+            <form action="{% url 'system_admin:approve_asset' asset.id %}" method="POST" style="flex: 1; display: flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-mod approve"><i class="fas fa-check"></i> Allow</button>
+            </form>
+            <form action="{% url 'system_admin:flag_asset' asset.id %}" method="POST" style="flex: 1; display: flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-mod reject"><i class="fas fa-times"></i> Block</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-shield-check" style="font-size: 4rem; color: #16a34a; margin-bottom: 20px;"></i>
+        <h3>Queue is Clean</h3>
+        <p>No flagged content requires moderation at this time.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

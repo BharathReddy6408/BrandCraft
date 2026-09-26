@@ -1,0 +1,22 @@
+{% extends 'system_admin/admin_base.html' %}
+
+{% block title %}{{ module_name }} | BrandCraft Admin{% endblock %}
+
+{% block content %}
+<div style="background: white; border-radius: 12px; border: 1px solid var(--admin-border); padding: 48px; text-align: center; margin-top: 20px;">
+    <div style="font-size: 3rem; color: var(--admin-text-muted); margin-bottom: 24px;">
+        <i class="fas fa-tools"></i>
+    </div>
+    <h1 style="font-family: 'Playfair Display', serif; color: var(--admin-accent); font-weight: 700; margin-bottom: 16px;">
+        {{ module_name }}
+    </h1>
+    <p style="color: var(--admin-text-muted); font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+        This module is currently under development. The backend services for the <strong>{{ module_name }}</strong> are being built and will be available in a future release.
+    </p>
+    <div style="margin-top: 40px;">
+        <a href="{% url 'system_admin:dashboard' %}" class="action-btn" style="background: var(--admin-accent); color: white; padding: 10px 24px; border-radius: 6px; font-size: 0.95rem; font-weight: 500; text-decoration: none;">
+            Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Content Queue | {{ project.business_name }}{% endblock %}
+
+{% block menu_queue %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.workspace-header {
+    margin-bottom: 40px;
+}
+.workspace-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+.queue-nav {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid rgba(200,190,175,0.4);
+    padding-bottom: 16px;
+}
+.queue-tab {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+.queue-tab.active {
+    color: var(--color-navy-deep);
+    background: rgba(23,52,79,0.05);
+}
+
+.item-card {
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.item-type {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--color-copper);
+    margin-bottom: 8px;
+}
+.item-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    margin: 0;
+}
+.item-meta {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+}
+.btn-approve {
+    background: var(--color-sage-deep);
+    color: #FFF;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+}
+.btn-reject {
+    background: #FFF;
+    color: #E74C3C;
+    border: 1px solid #E74C3C;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="workspace-header">
+    <h1 class="workspace-title">Content Queue</h1>
+    <p class="text-muted">Review, approve, or reject AI-generated assets before they become official.</p>
+</div>
+
+<div class="queue-nav">
+    <div class="queue-tab active" onclick="switchTab('pending')">Pending ({{ pending_items.count }})</div>
+    <div class="queue-tab" onclick="switchTab('approved')">Approved ({{ approved_items.count }})</div>
+    <div class="queue-tab" onclick="switchTab('rejected')">Rejected ({{ rejected_items.count }})</div>
+</div>
+
+<!-- PENDING -->
+<div id="tab-pending" class="queue-content">
+    {% if pending_items %}
+        {% for item in pending_items %}
+        <div class="item-card">
+            <div>
+                <div class="item-type">{{ item.item_type }}</div>
+                <h4 class="item-title">{{ item.title }}</h4>
+                <div class="item-meta">Generated {{ item.created_at|timesince }} ago | Version {{ item.versions.first.version_number }}</div>
+            </div>
+            <div>
+                <button class="btn-approve" onclick="handleAction({{ item.id }}, 'APPROVE')">Approve</button>
+                <button class="btn-reject" onclick="handleAction({{ item.id }}, 'REJECT')">Reject</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No pending items in your queue.</p>
+    {% endif %}
+</div>
+
+<!-- APPROVED -->
+<div id="tab-approved" class="queue-content d-none">
+    {% if approved_items %}
+        {% for item in approved_items %}
+        <div class="item-card" style="opacity: 0.8;">
+            <div>
+                <div class="item-type">{{ item.item_type }}</div>
+                <h4 class="item-title">{{ item.title }}</h4>
+                <div class="item-meta">Approved {{ item.updated_at|date:"M j, Y" }}</div>
+            </div>
+            <div>
+                <span class="badge bg-success">Approved</span>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No approved items yet.</p>
+    {% endif %}
+</div>
+
+<!-- REJECTED -->
+<div id="tab-rejected" class="queue-content d-none">
+    {% if rejected_items %}
+        {% for item in rejected_items %}
+        <div class="item-card" style="opacity: 0.8;">
+            <div>
+                <div class="item-type">{{ item.item_type }}</div>
+                <h4 class="item-title">{{ item.title }}</h4>
+                <div class="item-meta">Rejected {{ item.updated_at|date:"M j, Y" }}</div>
+            </div>
+            <div>
+                <span class="badge bg-danger">Rejected</span>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No rejected items.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tabId) {
+    document.querySelectorAll('.queue-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.queue-content').forEach(c => c.classList.add('d-none'));
+    
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tabId).classList.remove('d-none');
+}
+
+function handleAction(itemId, action) {
+    let payload = { action: action };
+    if (action === 'REJECT') {
+        const feedback = prompt("Optional feedback for why this was rejected:");
+        if (feedback === null) return; // cancelled
+        payload.feedback = feedback;
+    }
+    
+    fetch(`/workflow/project/{{ project.id }}/queue/${itemId}/action/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    });
+}
+</script>
+{% endblock %}

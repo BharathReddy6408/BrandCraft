@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Brand Presentation | {{ project.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Hide Base Navbar and Footer */
+nav.bc-navbar, footer {
+    display: none !important;
+}
+
+/* Premium Dynamic Background */
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #0f172a);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.presentation-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
+
+/* Floating Back Button */
+.back-nav {
+    position: fixed;
+    top: 40px;
+    left: 40px;
+    z-index: 100;
+}
+.back-btn {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 24px;
+    border-radius: 50px;
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+/* Slides */
+.slide {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 120px;
+}
+
+/* Typography */
+.brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 7rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #ffffff, #C68B3C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 4px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: -2px;
+}
+.slogan {
+    font-size: 2.2rem;
+    color: #cbd5e1;
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 300;
+}
+.section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 60px;
+    text-align: center;
+    position: relative;
+    letter-spacing: -0.5px;
+}
+.section-title::after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 3px;
+    background: var(--color-gold-primary, #C68B3C);
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    padding: 40px;
+    height: 100%;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+.glass-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.glass-card h4 {
+    font-family: 'Playfair Display', serif;
+    color: #ffffff;
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.glass-card p, .glass-card li {
+    color: #94a3b8;
+    line-height: 1.8;
+    font-size: 1.15rem;
+}
+.glass-card strong {
+    color: #e2e8f0;
+}
+
+/* Color Palette Swatches */
+.color-palette {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+.color-swatch-wrapper {
+    text-align: center;
+}
+.color-swatch {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+    border: 4px solid rgba(255,255,255,0.1);
+    transition: transform 0.3s ease;
+}
+.color-swatch:hover {
+    transform: scale(1.05);
+}
+.color-swatch-label {
+    font-family: 'Inter', sans-serif;
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Image Assets */
+.asset-img {
+    max-width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    transition: transform 0.4s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.asset-img:hover {
+    transform: scale(1.03);
+}
+
+/* Reveal Animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="back-nav">
+    <a href="{% url 'branding:downloads' project.pk %}" class="back-btn">
+        <i class="bi bi-arrow-left me-2"></i>← Exit Presentation
+    </a>
+</div>
+
+<div class="presentation-container">
+    
+    <!-- Title Slide -->
+    <div class="slide reveal">
+        <h1 class="brand-name">{{ project.business_name }}</h1>
+        {% if project.selected_slogan %}
+        <p class="slogan">"{{ project.selected_slogan }}"</p>
+        {% endif %}
+    </div>
+    
+    <!-- Core Identity Slide -->
+    {% if project.business_idea or project.target_audience %}
+    <div class="slide reveal">
+        <h2 class="section-title">The Foundation</h2>
+        <div class="row g-5 justify-content-center">
+            {% if project.business_idea %}
+            <div class="col-md-5">
+                <div class="glass-card">
+                    <h4>The Concept</h4>
+                    <p>{{ project.business_idea }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if project.target_audience %}
+            <div class="col-md-5">
+                <div class="glass-card" style="border-top: 4px solid var(--color-gold-primary, #C68B3C);">
+                    <h4>Target Audience</h4>
+                    <p>{{ project.target_audience }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Strategy Slide -->
+    {% if project.brand_mission or project.brand_vision or project.usp %}
+    <div class="slide reveal">
+        <h2 class="section-title">Our Strategy</h2>
+        <div class="text-center mx-auto" style="max-width: 900px;">
+            {% if project.brand_mission %}
+            <div class="glass-card mb-5">
+                <h4 class="justify-content-center" style="color: var(--color-gold-primary, #C68B3C); font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase;">Our Mission</h4>
+                <p style="font-size: 1.6rem; font-style: italic; color: #fff;">"{{ project.brand_mission }}"</p>
+            </div>
+            {% endif %}
+            
+            <div class="row g-5">
+                {% if project.brand_vision %}
+                <div class="col-md-6">
+                    <div class="glass-card text-start">
+                        <h4 style="font-size: 1rem; letter-spacing: 2px; text-transform: uppercase;">Our Vision</h4>
+                        <p>{{ project.brand_vision }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if project.usp %}
+                <div class="col-md-6">
+                    <div class="glass-card text-start">
+                        <h4 style="font-size: 1rem; letter-spacing: 2px; text-transform: uppercase; color: var(--color-gold-primary, #C68B3C);">Unique Selling Proposition</h4>
+                        <p>{{ project.usp }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Personality & Voice Slide -->
+    {% if project.brand_personality or project.brand_voice %}
+    <div class="slide reveal">
+        <h2 class="section-title">Brand Persona</h2>
+        <div class="row g-5 justify-content-center">
+            {% if project.brand_personality %}
+            <div class="col-md-5">
+                <div class="glass-card">
+                    <h4>Personality Traits</h4>
+                    <p>{{ project.brand_personality }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if project.brand_voice %}
+            <div class="col-md-5">
+                <div class="glass-card">
+                    <h4>Tone of Voice</h4>
+                    <p>{{ project.brand_voice }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Identity Slide -->
+    {% if project.colors %}
+    <div class="slide reveal">
+        <h2 class="section-title">Visual Identity</h2>
+        <div class="color-palette">
+            {% if project.colors.primary %}
+            <div class="color-swatch-wrapper">
+                <div class="color-swatch" style="background-color: {{ project.colors.primary }};"></div>
+                <div class="color-swatch-label">Primary</div>
+            </div>
+            {% endif %}
+            {% if project.colors.secondary %}
+            <div class="color-swatch-wrapper">
+                <div class="color-swatch" style="background-color: {{ project.colors.secondary }};"></div>
+                <div class="color-swatch-label">Secondary</div>
+            </div>
+            {% endif %}
+            {% if project.colors.accent %}
+            <div class="color-swatch-wrapper">
+                <div class="color-swatch" style="background-color: {{ project.colors.accent }};"></div>
+                <div class="color-swatch-label">Accent</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Assets Slide -->
+    {% if project.assets.all %}
+    <div class="slide reveal">
+        <h2 class="section-title">Brand Assets</h2>
+        <div class="row g-5">
+            {% for asset in project.assets.all %}
+            {% if asset.file_upload %}
+            <div class="col-md-6 text-center">
+                <div class="glass-card p-4 d-flex flex-column align-items-center justify-content-center">
+                    <img src="{{ asset.file_upload.url }}" alt="Brand Asset" class="asset-img">
+                    {% if asset.title %}<p class="mt-4 mb-0 fw-bold text-white">{{ asset.title }}</p>{% endif %}
+                </div>
+            </div>
+            {% elif asset.content_json %}
+            <div class="col-md-6">
+                <div class="glass-card">
+                    <h4>{{ asset.title|default:asset.get_asset_type_display }}</h4>
+                    {% if asset.content_json.items %}
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                        {% for key, value in asset.content_json.items %}
+                            <li style="margin-bottom: 15px;">
+                                <strong style="display: block; margin-bottom: 4px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">{{ key|title }}</strong>
+                                {{ value }}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p style="white-space: pre-wrap;">{{ asset.content_json }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Intersection Observer for scroll animations
+    const reveals = document.querySelectorAll(".reveal");
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("active");
+            }
+        });
+    }, { 
+        threshold: 0.15,
+        rootMargin: "0px 0px -50px 0px"
+    });
+    
+    reveals.forEach(reveal => observer.observe(reveal));
+});
+</script>
+{% endblock %}

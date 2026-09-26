@@ -1,0 +1,571 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In | BrandCraft{% endblock %}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* New Premium Glassmorphism Style from Mockup */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    
+    background-color: #F8F7F2;
+    background-image: url('{% static "images/adminb.png" %}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    position: relative;
+    overflow: hidden;
+}
+
+#particle-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none; /* Let clicks pass through */
+}
+
+/* Invisible div just to capture mouse movements globally over the background */
+#mouse-catcher {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.auth-card {
+    /* Highly reflective, bright milky glass */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.1) 100%);
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.9);
+    border-left: 1.5px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), inset 0 0 80px rgba(255, 255, 255, 0.15);
+    padding: 48px;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.auth-logo svg {
+    width: 36px;
+    height: 36px;
+}
+.auth-logo span {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.auth-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.auth-subtitle {
+    color: #111111;
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #111111;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Input container for icons */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    color: #333333;
+    display: flex;
+}
+.input-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.input-action {
+    position: absolute;
+    right: 14px;
+    color: #333333;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.input-action svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Override default input styling */
+.form-group input {
+    width: 100%;
+    /* Bright white inset style */
+    background: rgba(255, 255, 255, 0.6); 
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 14px 16px 14px 42px; /* padding-left for icon */
+    font-size: 0.95rem;
+    color: #000000;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+}
+
+.form-group input:focus {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+    outline: none;
+}
+
+.form-group input::placeholder {
+    color: #444444;
+}
+
+.forgot-pwd {
+    display: block;
+    text-align: right;
+    font-size: 0.85rem;
+    color: #000000;
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: 8px;
+    margin-bottom: 24px;
+}
+.forgot-pwd:hover {
+    text-decoration: underline;
+}
+
+.btn-auth {
+    /* Precise Navy to Gold gradient from mockup */
+    background: linear-gradient(90deg, #101935 0%, #2f436e 40%, #cca15e 80%, #f7d58b 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px;
+    width: 100%;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.btn-auth:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    background: linear-gradient(90deg, #162247 0%, #3a5287 40%, #dbad62 80%, #ffe39e 100%);
+}
+
+.auth-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    font-size: 0.85rem;
+    color: #111111;
+    font-weight: 500;
+}
+
+.auth-footer a {
+    color: #000000;
+    font-weight: 700;
+    text-decoration: none;
+}
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.btn-admin {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px solid #111111;
+    border-radius: 50px;
+    color: #111111;
+    font-weight: 600;
+    text-decoration: none;
+    background: transparent;
+    transition: background 0.2s;
+}
+.btn-admin:hover {
+    background: rgba(0,0,0,0.05);
+    text-decoration: none;
+}
+.btn-admin svg {
+    width: 14px;
+    height: 14px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div id="particle-canvas"></div>
+    <div id="mouse-catcher"></div>
+
+    <div class="auth-card">
+        <div class="auth-logo">
+            <svg viewBox="0 0 40 40">
+                <path d="M10 5 H22 Q30 5 30 12.5 Q30 17 25 19 Q32 21 32 28 Q32 35 22 35 H10 Z M15 10 V17 H22 Q25 17 25 13.5 Q25 10 22 10 Z M15 22 V30 H23 Q27 30 27 26 Q27 22 23 22 Z" fill="none" stroke="#d4af37" stroke-width="2"/>
+                <path d="M5 10 H10 M5 30 H10 V10" fill="none" stroke="#d4af37" stroke-width="2"/>
+            </svg>
+            <span>BrandCraft</span>
+        </div>
+        
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Please sign in to continue.</p>
+
+        <form method="post" action="{% url 'accounts:login' %}">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" style="border-radius: 8px; font-size: 0.85rem; padding: 10px; background: rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.2); color:#d93025;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="id_username" class="form-label">Username</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <input type="text" name="username" id="id_username" placeholder="Username" required>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 4px;">
+                <label for="id_password" class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </span>
+                    <input type="password" name="password" id="id_password" placeholder="••••••••" required>
+                    <span class="input-action">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        show
+                    </span>
+                </div>
+            </div>
+            
+            <a href="#" class="forgot-pwd">Forgot Password?</a>
+
+            <button type="submit" class="btn-auth">Sign In</button>
+        </form>
+
+        <div class="auth-footer">
+            <div>New to BrandCraft? <a href="{% url 'accounts:register' %}">Sign up</a></div>
+            <a href="{% url 'accounts:admin_login' %}" class="btn-admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                Admin Portal
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Password visibility toggle
+    const togglePassword = document.querySelector('.input-action');
+    const passwordInput = document.getElementById('id_password');
+    if(togglePassword && passwordInput) {
+        togglePassword.style.cursor = 'pointer';
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            if (type === 'text') {
+                this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>\n                        hide';
+            } else {
+                this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>\n                        show';
+            }
+        });
+    }
+
+    const container = document.getElementById('particle-canvas');
+    if (!container) return;
+
+    // We will render text "Brand Craft" via an offscreen 2D canvas, 
+    // extract pixel data, and spawn particles at those coordinates.
+    const textCanvas = document.createElement('canvas');
+    const ctx = textCanvas.getContext('2d');
+    textCanvas.width = 1000;
+    textCanvas.height = 500;
+
+    // Draw Text - Larger and bolder
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 150px "Playfair Display", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Brand', textCanvas.width / 2, textCanvas.height / 2 - 85);
+    ctx.fillText('Craft', textCanvas.width / 2, textCanvas.height / 2 + 85);
+
+    const imgData = ctx.getImageData(0, 0, textCanvas.width, textCanvas.height).data;
+    
+    // Store valid pixel coordinates
+    const textCoordinates = [];
+    // Sample every 2nd pixel for much higher density
+    for (let y = 0; y < textCanvas.height; y += 3) {
+        for (let x = 0; x < textCanvas.width; x += 3) {
+            const index = (y * textCanvas.width + x) * 4;
+            const alpha = imgData[index + 3];
+            if (alpha > 128) {
+                // Adjust coordinates to be centered around 0,0
+                textCoordinates.push({
+                    x: (x - textCanvas.width / 2) * 0.05,
+                    y: -(y - textCanvas.height / 2) * 0.05 // invert y because canvas y goes down
+                });
+            }
+        }
+    }
+
+    // Setup Three.js Scene
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 35; // Bring camera slightly closer
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    // Particle Configuration
+    const particleCount = textCoordinates.length;
+    
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const targetPositions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const sizes = new Float32Array(particleCount);
+    const speeds = new Float32Array(particleCount);
+
+    // Use darker colors for light background
+    const colorGold = new THREE.Color('#C28D54'); // Brand Gold
+    const colorTealDark = new THREE.Color('#123440'); // Dark Teal
+    const colorTealLight = new THREE.Color('#618A86'); // Light Teal
+
+    for (let i = 0; i < particleCount; i++) {
+        // Target positions form the text.
+        // Shift heavily to the left so it sits nicely in the empty background area
+        targetPositions[i * 3] = textCoordinates[i].x - 28; 
+        targetPositions[i * 3 + 1] = textCoordinates[i].y + 8;  
+        targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 1.5;
+
+        // Initial positions (randomly scattered for "Formation" effect)
+        positions[i * 3] = (Math.random() - 0.5) * 120;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 120;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 120;
+
+        // Colors
+        let col = colorTealDark; // Majority dark teal for readability
+        const r = Math.random();
+        if (r > 0.7) col = colorGold;
+        else if (r > 0.5) col = colorTealLight;
+        
+        colors[i * 3] = col.r;
+        colors[i * 3 + 1] = col.g;
+        colors[i * 3 + 2] = col.b;
+
+        // Larger particles for solid appearance
+        sizes[i] = Math.random() * 2.0 + 1.2;
+        speeds[i] = 0.02 + Math.random() * 0.05;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    
+    // Shader Material - NormalBlending for light backgrounds
+    const material = new THREE.PointsMaterial({
+        size: 0.25, // Base size multiplier
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.NormalBlending // VERY IMPORTANT for light backgrounds
+    });
+
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+
+    // Add ambient dust particles
+    const dustCount = 400;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPos = new Float32Array(dustCount * 3);
+    const dustColors = new Float32Array(dustCount * 3);
+    
+    for(let i=0; i<dustCount; i++) {
+        dustPos[i*3] = (Math.random() - 0.5) * 100;
+        dustPos[i*3+1] = (Math.random() - 0.5) * 100;
+        dustPos[i*3+2] = (Math.random() - 0.5) * 50;
+
+        // Subtle gold dust
+        dustColors[i*3] = colorGold.r;
+        dustColors[i*3+1] = colorGold.g;
+        dustColors[i*3+2] = colorGold.b;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+    const dustMat = new THREE.PointsMaterial({
+        size: 0.15, 
+        vertexColors: true, 
+        transparent: true, 
+        opacity: 0.6, 
+        blending: THREE.NormalBlending
+    });
+    const dustParticles = new THREE.Points(dustGeo, dustMat);
+    scene.add(dustParticles);
+
+    // Mouse Interaction (Destruction / Repel)
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2(-9999, -9999);
+    let isHovering = false;
+    
+    // Map mouse to Normalized Device Coordinates
+    document.getElementById('mouse-catcher').addEventListener('mousemove', (event) => {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        isHovering = true;
+    });
+    document.getElementById('mouse-catcher').addEventListener('mouseleave', () => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+        isHovering = false;
+    });
+
+    // Animation Loop
+    const clock = new THREE.Clock();
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const elapsedTime = clock.getElapsedTime();
+
+        // 1. Particle Formation & Destruction
+        const positionsAtt = geometry.attributes.position;
+        
+        // Raycast to find intersection point on an invisible plane at z=0
+        raycaster.setFromCamera(mouse, camera);
+        const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const mouseWorld = new THREE.Vector3();
+        raycaster.ray.intersectPlane(planeZ, mouseWorld);
+
+        for (let i = 0; i < particleCount; i++) {
+            const px = positionsAtt.array[i * 3];
+            const py = positionsAtt.array[i * 3 + 1];
+            const pz = positionsAtt.array[i * 3 + 2];
+            
+            const tx = targetPositions[i * 3];
+            const ty = targetPositions[i * 3 + 1];
+            const tz = targetPositions[i * 3 + 2];
+
+            // Default behavior: Lerp towards target position (Formation)
+            let forceX = (tx - px) * speeds[i];
+            let forceY = (ty - py) * speeds[i];
+            let forceZ = (tz - pz) * speeds[i];
+
+            // Destruction/Repel: If mouse is close, push particles away
+            if (isHovering && mouseWorld) {
+                const dx = px - mouseWorld.x;
+                const dy = py - mouseWorld.y;
+                const distSq = dx*dx + dy*dy;
+                const repelRadius = 36; // 6 squared, slightly larger repel radius
+                
+                if (distSq < repelRadius) {
+                    const force = (repelRadius - distSq) * 0.08;
+                    forceX += (dx / Math.sqrt(distSq)) * force;
+                    forceY += (dy / Math.sqrt(distSq)) * force;
+                    forceZ += (Math.random() - 0.5) * force;
+                }
+            }
+
+            // Apply slight ambient wave (Particle Trails/Wobble)
+            forceX += Math.sin(elapsedTime * 2 + i) * 0.005;
+            forceY += Math.cos(elapsedTime * 2 + i) * 0.005;
+
+            positionsAtt.array[i * 3] += forceX;
+            positionsAtt.array[i * 3 + 1] += forceY;
+            positionsAtt.array[i * 3 + 2] += forceZ;
+        }
+        
+        positionsAtt.needsUpdate = true;
+
+        // 2. Animate Dust
+        dustParticles.rotation.y = elapsedTime * 0.03;
+        dustParticles.rotation.x = elapsedTime * 0.015;
+
+        // Render
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Handle Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+});
+</script>
+{% endblock %}

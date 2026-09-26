@@ -1,0 +1,115 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Creative Studio | {{ project.business_name }}{% endblock %}
+
+{% block menu_creative %}active{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4" style="border-radius: 24px; background: #FFF;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Creative Studio</h2>
+        <a href="{% url 'branding:campaign_studio' project.pk %}" class="btn btn-sm btn-outline-dark" style="border-radius:20px;">Open Campaign Studio</a>
+    </div>
+    <p class="text-muted mb-4">Generate stunning, brand-aligned visual assets for your marketing channels.</p>
+
+    <div class="row g-4 mt-2">
+        <!-- Controls -->
+        <div class="col-md-4">
+            <div class="p-4" style="background:var(--color-bg-main); border-radius:16px; border:1px solid rgba(200,190,175,0.3);">
+                <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">Asset Generator</h5>
+                <form method="POST" action="{% url 'branding:creative_studio' project.pk %}" id="creativeForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="generate">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Asset Type</label>
+                        <select name="asset_type" class="form-select" style="border-radius:10px;">
+                            <option value="Social Media Post">Social Media Post</option>
+                            <option value="Instagram Story">Instagram Story</option>
+                            <option value="Website Banner">Website Banner</option>
+                            <option value="Event Poster">Event Poster</option>
+                            <option value="Ad Creative">Ad Creative</option>
+                            <option value="Blog Cover">Blog Cover</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Primary Goal</label>
+                        <select name="goal" class="form-select" style="border-radius:10px;">
+                            <option value="Brand Awareness">Brand Awareness</option>
+                            <option value="Product Launch">Product Launch</option>
+                            <option value="Sales / Promotion">Sales / Promotion</option>
+                            <option value="Educational / Tips">Educational / Tips</option>
+                            <option value="Community Engagement">Community Engagement</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-dark-pill w-100 py-2" id="genCreativeBtn" onclick="this.innerHTML='<span class=\'spinner-border spinner-border-sm me-2\'></span>Generating...'">Generate Asset &rarr;</button>
+                </form>
+                
+                <div class="mt-4 p-3" style="background:rgba(232,185,113,0.1); border-radius:12px; font-size:0.85rem; color:var(--color-navy-deep);">
+                    <strong>💡 Workflow Tip:</strong> AI will write the prompt based on your brand context, generate the image, and suggest a headline overlay.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gallery -->
+        <div class="col-md-8">
+            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between">
+                <span>Asset Library</span>
+                <span class="badge" style="background:var(--color-navy-deep); font-size:0.8rem;">{{ creative_assets.count }}</span>
+            </h5>
+            
+            {% if creative_assets %}
+                <div class="row g-3">
+                    {% for asset in creative_assets %}
+                        <div class="col-sm-6 col-md-6">
+                            <div class="card border-0 shadow-sm h-100 overflow-hidden" style="border-radius:16px;">
+                                <div style="aspect-ratio: 1; background:#f8f9fa; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                    {% if asset.file_upload %}
+                                        <img src="{{ asset.file_upload.url }}" class="img-fluid" style="object-fit:cover; width:100%; height:100%;" alt="Creative Asset">
+                                    {% else %}
+                                        <div class="text-muted small">No Image</div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="small fw-bold text-truncate" style="color:var(--color-navy-deep);" title="{{ asset.title }}">{{ asset.title }}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">{{ asset.get_asset_type_display }} &bull; {{ asset.created_at|date:"M d, Y" }}</div>
+                                    
+                                    {% if asset.metadata.headline %}
+                                    <div class="mt-2 p-2" style="background:rgba(0,0,0,0.03); border-radius:8px; font-size:0.8rem;">
+                                        <strong>Copy Idea:</strong> "{{ asset.metadata.headline }}"
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="mt-3 text-end">
+                                        {% if asset.file_upload %}
+                                        <a href="{{ asset.file_upload.url }}" download class="btn btn-sm btn-outline-dark" style="border-radius:20px;">
+                                            Download Image
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center p-5 border" style="border-radius: 16px; border-style: dashed !important; color: #aaa;">
+                    <div style="font-size:3rem; margin-bottom:10px;">📸</div>
+                    <p class="mb-0 fw-bold text-dark">No creative assets generated yet.</p>
+                    <p class="small">Use the generator on the left to create your first visual asset.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Next Phase Navigation -->
+    <div class="mt-5 text-end border-top pt-4">
+        <a href="{% url 'branding:marketing_studio' project.pk %}" class="btn btn-dark-pill px-5 py-3 fs-5 shadow-sm">
+            Continue to Marketing Studio &rarr;
+        </a>
+    </div>
+</div>
+{% endblock %}

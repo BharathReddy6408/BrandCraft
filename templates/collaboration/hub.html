@@ -1,0 +1,181 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Brand Hub | {{ project.business_name }}{% endblock %}
+
+{% block menu_hub %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.hub-header {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.hub-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+.widget-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+.widget-card {
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.widget-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--color-navy-deep);
+    margin: 0;
+}
+.widget-action {
+    font-size: 0.85rem;
+    color: var(--color-gold-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+.widget-action:hover {
+    text-decoration: underline;
+}
+
+.health-banner {
+    grid-column: span 1;
+    background: linear-gradient(135deg, var(--color-navy-deep), #1e4566);
+    color: #FFF;
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.health-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-copper);
+}
+
+.asset-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(200,190,175,0.2);
+}
+.asset-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.asset-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(23,52,79,0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+.task-item {
+    background: rgba(200,190,175,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+.task-title {
+    font-weight: 600;
+    color: var(--color-navy-deep);
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hub-header">
+    <div>
+        <h1 class="hub-title">{{ project.business_name }} Hub</h1>
+        <p class="text-muted">Welcome back. Here is the complete overview of your brand workspace.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="dropdown">
+            <button class="btn btn-dark dropdown-toggle" type="button" id="quickActionDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background: var(--color-navy-deep); border-radius: 50px;">
+                + Quick Action
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="quickActionDropdown" style="border: 1px solid rgba(200,190,175,0.4); border-radius: 12px; min-width: 250px; padding: 12px;">
+                <li><h6 class="dropdown-header text-uppercase" style="color: var(--color-gold-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 1px;">Create</h6></li>
+                <li><a class="dropdown-item fw-bold" href="{% url 'branding:creative_studio' project.pk %}">📸 Generate Creative Asset</a></li>
+                <li><a class="dropdown-item fw-bold" href="{% url 'branding:brand_identity' project.pk %}">✨ Refine Brand Core</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><h6 class="dropdown-header text-uppercase" style="color: var(--color-gold-primary); font-weight: 700; font-size: 0.75rem; letter-spacing: 1px;">Navigation</h6></li>
+                <li><a class="dropdown-item fw-bold" href="{% url 'branding:downloads' project.pk %}">📥 Brand Kit Board</a></li>
+                <li><a class="dropdown-item fw-bold" href="{% url 'workflow:dashboard' project.pk %}">🚀 Workspace Planner</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="widget-grid">
+    <!-- Brand Health Banner -->
+    <div class="health-banner">
+        <div>
+            <h4 style="color: rgba(255,255,255,0.7); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Brand Health Score</h4>
+            <div style="font-size: 1.1rem; max-width: 400px;">
+                Your collaborative workspace is <strong>{{ health_score }}%</strong> complete. Check your Smart Planner for next steps.
+            </div>
+        </div>
+        <div class="health-score">
+            {{ health_score }}%
+        </div>
+    </div>
+
+    <!-- Recent Assets Widget -->
+    <div class="widget-card">
+        <div class="widget-header">
+            <h3 class="widget-title">Recent Assets</h3>
+            <a href="{% url 'branding:creative_studio' project.pk %}" class="widget-action">View All</a>
+        </div>
+        <div>
+            {% if recent_assets %}
+                {% for asset in recent_assets %}
+                <div class="asset-item">
+                    <div class="asset-icon">🖼️</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">{{ asset.title|default:asset.get_asset_type_display }}</div>
+                        <div style="font-size: 0.8rem; color: var(--color-text-muted);">{{ asset.created_at|timesince }} ago</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted" style="font-size: 0.9rem;">No assets generated yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Hub specific scripts can go here
+</script>
+{% endblock %}

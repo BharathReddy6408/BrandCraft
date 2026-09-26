@@ -1,0 +1,433 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}AI Model Management | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.model-card {
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.model-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+.model-info h3 {
+    margin: 0 0 4px 0;
+    font-size: 1.2rem;
+    color: var(--admin-accent);
+}
+.model-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--admin-text-muted);
+}
+.model-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--admin-bg);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: var(--admin-accent);
+    box-shadow: inset 2px 2px 5px #e5e3dd, inset -2px -2px 5px #ffffff;
+}
+
+.model-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 16px;
+    border-radius: 12px;
+}
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.stat-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--admin-text-main);
+}
+
+.model-actions {
+    display: flex;
+    gap: 12px;
+}
+.btn-action {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    background: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--admin-text-main);
+}
+.btn-action:hover {
+    background: var(--admin-hover);
+}
+
+/* Status Indicator */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+.status-active .status-dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.status-inactive .status-dot { background: #ef4444; }
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 24px;
+    border: 1px dashed rgba(23, 52, 79, 0.2);
+}
+
+/* Custom Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.custom-modal {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+}
+
+.modal-overlay.show .custom-modal {
+    transform: translateY(0) scale(1);
+}
+
+.modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(23, 52, 79, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--admin-accent);
+    font-weight: 700;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+}
+
+.btn-close:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.modal-body {
+    padding: 32px;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(23, 52, 79, 0.15);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--admin-text-main);
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2317344F%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px top 50%;
+    background-size: 12px auto;
+}
+
+.custom-select:focus {
+    border-color: var(--color-gold-primary);
+    box-shadow: 0 0 0 4px rgba(198, 139, 60, 0.15);
+}
+
+.modal-footer {
+    padding: 24px 32px;
+    border-top: 1px solid rgba(23, 52, 79, 0.08);
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    background: rgba(251, 248, 242, 0.5);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>AI Model Management</h1>
+        <p>Configure LLMs, image generators, and external API providers.</p>
+    </div>
+    <button class="btn-3d-glass" onclick="openModal('addModelModal')">
+        <i class="fas fa-plus"></i> Add New Model
+    </button>
+</div>
+
+<div class="models-grid">
+    {% for model in models %}
+    <div class="model-card card-glass">
+        <div class="model-header">
+            <div class="model-info">
+                <h3>{{ model.name }}</h3>
+                <p>Provider: {{ model.provider_name }}</p>
+                <div style="margin-top: 8px; font-size: 0.8rem; font-weight: 600;" class="{% if model.status == 'ACTIVE' %}status-active{% else %}status-inactive{% endif %}">
+                    <span class="status-dot"></span>
+                    {% if model.status == 'ACTIVE' %}Operational{% elif model.status == 'TESTING' %}Testing{% elif model.status == 'DEPRECATED' %}Deprecated{% else %}Offline{% endif %}
+                </div>
+            </div>
+            <div class="model-icon">
+                {% if model.model_type == 'TEXT' %}<i class="fas fa-align-left"></i>
+                {% elif model.model_type == 'IMAGE' %}<i class="fas fa-image"></i>
+                {% else %}<i class="fas fa-cogs"></i>{% endif %}
+            </div>
+        </div>
+        
+        <div class="model-stats">
+            <div class="stat-item">
+                <span class="stat-label">Model Type</span>
+                <span class="stat-val">{{ model.model_type|title }}</span>
+            </div>
+            {% if model.provider_name != 'Local ML' %}
+            <div class="stat-item">
+                <span class="stat-label">API Key</span>
+                <span class="stat-val">{% if model.api_key %}••••••••{% else %}Not Set{% endif %}</span>
+            </div>
+            {% else %}
+            <div class="stat-item">
+                <span class="stat-label">Deployment</span>
+                <span class="stat-val">Local Server</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="model-actions">
+            <button class="btn-action" onclick="openModal('configModal{{ model.id }}')"><i class="fas fa-cog"></i> Configure</button>
+            <button class="btn-action" onclick="openModal('usageModal{{ model.id }}')"><i class="fas fa-chart-line"></i> Usage</button>
+            <form action="{% url 'system_admin:remove_model' model.id %}" method="POST" style="margin: 0; display: flex;" onsubmit="return confirm('Are you sure you want to remove this model?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-action" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); padding: 10px 14px; flex: none;" title="Remove Model">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Config Modal for {{ model.name }} -->
+    <div class="modal-overlay" id="configModal{{ model.id }}">
+        <div class="custom-modal">
+            <div class="modal-header">
+                <h2>Configure {{ model.name }}</h2>
+                <button type="button" class="btn-close" onclick="closeModal('configModal{{ model.id }}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="{% url 'system_admin:configure_model' model.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {% if model.provider_name != 'Local ML' %}
+                    <div style="margin-bottom: 16px;">
+                        <label for="api_key_{{ model.id }}" style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">API Key</label>
+                        <input type="password" id="api_key_{{ model.id }}" name="api_key" class="custom-select" style="background-image: none;" value="{{ model.api_key|default:'' }}" placeholder="Enter API Key">
+                    </div>
+                    {% endif %}
+                    <div style="margin-bottom: 16px;">
+                        <label for="status_{{ model.id }}" style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Status</label>
+                        <select class="custom-select" id="status_{{ model.id }}" name="status" required>
+                            <option value="ACTIVE" {% if model.status == 'ACTIVE' %}selected{% endif %}>Active (In Production)</option>
+                            <option value="INACTIVE" {% if model.status == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+                            <option value="TESTING" {% if model.status == 'TESTING' %}selected{% endif %}>Testing (A/B)</option>
+                            <option value="DEPRECATED" {% if model.status == 'DEPRECATED' %}selected{% endif %}>Deprecated</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('configModal{{ model.id }}')">Cancel</button>
+                    <button type="submit" class="btn-3d-glass" style="margin: 0; background: rgba(198, 139, 60, 0.9); color: white; border-color: rgba(255,255,255,0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.2);">Save Config</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Usage Modal for {{ model.name }} -->
+    <div class="modal-overlay" id="usageModal{{ model.id }}">
+        <div class="custom-modal">
+            <div class="modal-header">
+                <h2>{{ model.name }} Usage</h2>
+                <button type="button" class="btn-close" onclick="closeModal('usageModal{{ model.id }}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <i class="fas fa-chart-bar" style="font-size: 3rem; color: var(--color-gold-primary); margin-bottom: 16px;"></i>
+                <h3 style="color: var(--admin-accent);">Usage Analytics</h3>
+                <p style="color: var(--admin-text-muted);">Detailed token and cost analytics for this specific model will be available in the upcoming Analytics dashboard update.</p>
+                <div style="margin-top: 24px; padding: 16px; background: rgba(23, 52, 79, 0.05); border-radius: 12px; display: flex; justify-content: space-around;">
+                    <div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--admin-text-muted);">CALLS (30D)</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: var(--admin-text-main);">0</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--admin-text-muted);">ERRORS</div>
+                        <div style="font-size: 1.2rem; font-weight: 800; color: #ef4444;">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('usageModal{{ model.id }}')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-network-wired" style="font-size: 3rem; color:#cbd5e1; margin-bottom:16px;"></i>
+        <h3>No AI Models Configured</h3>
+        <p style="color:var(--admin-text-muted);">Connect OpenAI, Anthropic, or Midjourney APIs to begin generating assets.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Custom Add Model Modal -->
+<div class="modal-overlay" id="addModelModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Add Predefined Model</h2>
+            <button type="button" class="btn-close" onclick="closeModal('addModelModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'system_admin:add_model' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label for="predefined_model" style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Select Model to Add</label>
+                    <select class="custom-select" id="predefined_model" name="predefined_model" required>
+                        <option value="">-- Choose a Model --</option>
+                        <option value="groq_llama3">Groq Llama 3 70B (Text API)</option>
+                        <option value="local_sd">Local Stable Diffusion (Image ML)</option>
+                        <option value="local_embedding">Local Sentence Transformers (Embedding ML)</option>
+                    </select>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin: 0; line-height: 1.5;">
+                    Selecting a predefined model will automatically configure its name, provider, version, and set its status to Active.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('addModelModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass" style="margin: 0; background: rgba(198, 139, 60, 0.9); color: white; border-color: rgba(255,255,255,0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.2);">Add Model</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+    
+    // Close modal when clicking outside of the custom-modal container
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('show');
+        }
+    });
+</script>
+{% endblock %}

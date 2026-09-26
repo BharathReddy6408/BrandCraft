@@ -1,0 +1,288 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Executive Reports | {{ project.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.reports-header {
+    margin-bottom: 40px;
+}
+.reports-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+.report-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
+}
+.report-card:hover {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border-color: rgba(200,190,175,0.8);
+}
+
+.report-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+.badge-strategy { background: rgba(209, 151, 58, 0.1); color: var(--color-copper); }
+.badge-identity { background: rgba(142, 169, 155, 0.1); color: var(--color-sage-deep); }
+.badge-audit { background: rgba(23, 52, 79, 0.1); color: var(--color-navy-deep); }
+.badge-executive { background: var(--color-navy-deep); color: #FFF; }
+
+.report-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    margin-bottom: 12px;
+}
+
+.report-desc {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.report-meta {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+}
+
+.btn-generate {
+    background: #FFF;
+    border: 2px solid var(--color-navy-deep);
+    color: var(--color-navy-deep);
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+.btn-generate:hover {
+    background: var(--color-navy-deep);
+    color: #FFF;
+}
+.btn-download {
+    background: var(--color-copper);
+    border: none;
+    color: #FFF;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+.btn-download:hover {
+    background: #b58130;
+    color: #FFF;
+}
+
+.history-list {
+    margin-top: 24px;
+    border-top: 1px solid rgba(200,190,175,0.4);
+    padding-top: 16px;
+}
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-header">
+    <h1 class="reports-title">Executive Reports</h1>
+    <p class="text-muted">Generate professional PDF documentation of your brand's strategy, identity, and intelligence.</p>
+</div>
+
+<div class="row">
+    <!-- STRATEGY REPORT -->
+    <div class="col-md-6">
+        <div class="report-card">
+            <span class="report-type-badge badge-strategy">Foundation</span>
+            <h3 class="report-title">Brand Strategy Report</h3>
+            <p class="report-desc">A comprehensive overview of your brand's foundation, positioning, mission, target audience, and messaging direction.</p>
+            
+            {% with reports_by_type.STRATEGY.first as latest %}
+            <div class="report-meta">
+                {% if latest %}
+                <strong>Last generated:</strong> {{ latest.created_at|date:"F j, Y" }} (v{{ latest.version }})
+                {% else %}
+                <em>No report generated yet.</em>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn-generate" onclick="generateReport('STRATEGY')">
+                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                    Generate New
+                </button>
+                {% if latest and latest.status == 'READY' %}
+                <a href="{% url 'branding:download_file' project.pk 'report' latest.id %}" class="btn-download">Download PDF</a>
+                {% endif %}
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+    
+    <!-- IDENTITY REPORT -->
+    <div class="col-md-6">
+        <div class="report-card">
+            <span class="report-type-badge badge-identity">Visuals</span>
+            <h3 class="report-title">Brand Identity Report</h3>
+            <p class="report-desc">A professional summary of your logo, color palette, typography, and core visual system.</p>
+            
+            {% with reports_by_type.IDENTITY.first as latest %}
+            <div class="report-meta">
+                {% if latest %}
+                <strong>Last generated:</strong> {{ latest.created_at|date:"F j, Y" }} (v{{ latest.version }})
+                {% else %}
+                <em>No report generated yet.</em>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn-generate" onclick="generateReport('IDENTITY')">
+                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                    Generate New
+                </button>
+                {% if latest and latest.status == 'READY' %}
+                <a href="{% url 'branding:download_file' project.pk 'report' latest.id %}" class="btn-download">Download PDF</a>
+                {% endif %}
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+    
+    <!-- AUDIT REPORT -->
+    <div class="col-md-6">
+        <div class="report-card">
+            <span class="report-type-badge badge-audit">Intelligence</span>
+            <h3 class="report-title">Brand Audit Report</h3>
+            <p class="report-desc">A deep dive into your brand's consistency, content coverage, campaign readiness, and AI recommendations.</p>
+            
+            {% with reports_by_type.AUDIT.first as latest %}
+            <div class="report-meta">
+                {% if latest %}
+                <strong>Last generated:</strong> {{ latest.created_at|date:"F j, Y" }} (v{{ latest.version }})
+                {% else %}
+                <em>No report generated yet.</em>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn-generate" onclick="generateReport('AUDIT')">
+                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                    Generate New
+                </button>
+                {% if latest and latest.status == 'READY' %}
+                <a href="{% url 'branding:download_file' project.pk 'report' latest.id %}" class="btn-download">Download PDF</a>
+                {% endif %}
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+    
+    <!-- EXECUTIVE REPORT -->
+    <div class="col-md-6">
+        <div class="report-card" style="border: 2px solid var(--color-navy-deep);">
+            <span class="report-type-badge badge-executive">Comprehensive</span>
+            <h3 class="report-title">Executive Brand Report</h3>
+            <p class="report-desc">The master document. A complete, end-to-end summary of your entire BrandCraft project including strategy, identity, and AI summary.</p>
+            
+            {% with reports_by_type.EXECUTIVE.first as latest %}
+            <div class="report-meta">
+                {% if latest %}
+                <strong>Last generated:</strong> {{ latest.created_at|date:"F j, Y" }} (v{{ latest.version }})
+                {% else %}
+                <em>No report generated yet.</em>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn-generate" style="background: var(--color-navy-deep); color: #FFF;" onclick="generateReport('EXECUTIVE')">
+                    <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                    Generate Master Report
+                </button>
+                {% if latest and latest.status == 'READY' %}
+                <a href="{% url 'branding:download_file' project.pk 'report' latest.id %}" class="btn-download">Download PDF</a>
+                {% endif %}
+            </div>
+            
+            {% if reports_by_type.EXECUTIVE.count > 1 %}
+            <div class="history-list">
+                <h6 style="font-size:0.8rem; font-weight:bold; color:var(--color-text-muted); text-transform:uppercase;">Version History</h6>
+                {% for rep in reports_by_type.EXECUTIVE|slice:"1:4" %}
+                <div class="history-item">
+                    <span>Version {{ rep.version }} ({{ rep.created_at|date:"M j, Y" }})</span>
+                    {% if rep.status == 'READY' %}
+                    <a href="{% url 'branding:download_file' project.pk 'report' rep.id %}" style="color:var(--color-copper); text-decoration:none; font-weight:600;">Download</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% endwith %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function generateReport(type) {
+    const btns = document.querySelectorAll('.btn-generate');
+    btns.forEach(btn => btn.disabled = true);
+    
+    // Find clicked button
+    const activeBtn = Array.from(btns).find(btn => btn.getAttribute('onclick').includes(type));
+    const spinner = activeBtn.querySelector('.spinner-border');
+    if (spinner) spinner.classList.remove('d-none');
+    
+    fetch("{% url 'branding:generate_report' project.pk %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ report_type: type })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            window.location.reload();
+        } else {
+            alert('Generation failed: ' + (data.error || 'Unknown error'));
+            btns.forEach(btn => btn.disabled = false);
+            if (spinner) spinner.classList.add('d-none');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Request failed');
+        btns.forEach(btn => btn.disabled = false);
+        if (spinner) spinner.classList.add('d-none');
+    });
+}
+</script>
+{% endblock %}

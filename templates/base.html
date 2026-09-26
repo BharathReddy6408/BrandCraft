@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BrandCraft | AI Branding OS{% endblock %}</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <meta name="description" content="{% block meta_description %}BrandCraft is the enterprise AI branding operating system that builds complete brand identities from a single idea.{% endblock %}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Base Design System -->
+    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+
+    <!-- Inline Navbar + Base Styles -->
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        /* NAVBAR */
+        .bc-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(251, 248, 242, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(200,190,175,0.2);
+            padding: 0 40px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .bc-navbar .nav-brand {
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--color-navy-deep);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+        .bc-navbar .nav-brand span {
+            color: var(--color-gold-primary);
+        }
+        .bc-navbar .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .bc-navbar .nav-links a {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--color-navy-sec);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .bc-navbar .nav-links a:hover { color: var(--color-gold-primary); }
+        .bc-navbar .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .bc-navbar .nav-auth a.login-link {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--color-navy-sec);
+            text-decoration: none;
+        }
+        .bc-navbar .nav-auth a.login-link:hover { color: var(--color-gold-primary); }
+
+        /* SECTION SPACING */
+        .bc-section { padding: 120px 0; }
+        .bc-section-sm { padding: 80px 0; }
+
+        /* CONTAINER */
+        .bc-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    {% block header %}
+    <nav class="bc-navbar">
+        <a href="{% url 'website:landing' %}" class="nav-brand">Brand<span>Craft</span></a>
+
+        <ul class="nav-links d-none d-lg-flex">
+            <li><a href="{% url 'website:landing' %}">Home</a></li>
+            <li><a href="{% url 'website:about' %}">About</a></li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#architecture">Architecture</a></li>
+        </ul>
+
+        <div class="nav-auth">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard:home' %}" class="login-link">Dashboard</a>
+                <a href="{% url 'accounts:logout' %}" class="btn btn-dark-pill">Logout</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="login-link">Login</a>
+                <a href="{% url 'accounts:register' %}" class="btn btn-dark-pill">Get Started &rarr;</a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endblock %}
+
+    <!-- PAGE CONTENT -->
+    <main>
+        {% block messages %}
+        {% if messages %}
+            <div class="container mt-4" style="max-width: 1200px;">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert" style="border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 0.9rem; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endblock messages %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    {% block footer %}
+    <footer style="background: var(--color-navy-deep); color: rgba(255,255,255,0.7); padding: 80px 0 40px;">
+        <div class="bc-container">
+            <div class="row g-5 mb-5">
+                <div class="col-lg-4">
+                    <h4 style="font-family:'Playfair Display',serif; color:#fff; font-size:1.6rem;">Brand<span style="color:var(--color-gold-primary);">Craft</span></h4>
+                    <p class="mt-3" style="color:rgba(255,255,255,0.55); font-size:0.9rem; line-height:1.8;">Empowering businesses to build world-class brand identities through the power of Generative AI.</p>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-4" style="color:#fff; font-family:'Inter',sans-serif; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Product</h6>
+                    <ul class="list-unstyled" style="font-size:0.9rem;">
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.55); text-decoration:none;">Features</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.55); text-decoration:none;">Pricing</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.55); text-decoration:none;">Changelog</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-4" style="color:#fff; font-family:'Inter',sans-serif; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Company</h6>
+                    <ul class="list-unstyled" style="font-size:0.9rem;">
+                        <li class="mb-2"><a href="{% url 'website:about' %}" style="color:rgba(255,255,255,0.55); text-decoration:none;">About</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.55); text-decoration:none;">Blog</a></li>
+                        <li class="mb-2"><a href="#" style="color:rgba(255,255,255,0.55); text-decoration:none;">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="mb-4" style="color:#fff; font-family:'Inter',sans-serif; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px;">Newsletter</h6>
+                    <p style="color:rgba(255,255,255,0.55); font-size:0.9rem;">Get the latest updates and branding tips.</p>
+                    <div class="d-flex gap-2 mt-3">
+                        <input type="email" placeholder="Your email" class="form-control" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:12px;">
+                        <button class="btn btn-dark-pill px-4" style="white-space:nowrap;">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-top pt-4 d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.08) !important; font-size:0.85rem;">
+                <span>&copy; 2026 BrandCraft. All rights reserved.</span>
+                <div class="d-flex gap-4">
+                    <a href="#" style="color:rgba(255,255,255,0.45); text-decoration:none;">Privacy</a>
+                    <a href="#" style="color:rgba(255,255,255,0.45); text-decoration:none;">Terms</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Auto-dismiss Django Messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    alert.classList.remove('show');
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 300);
+                }, 3500);
+            });
+        });
+    </script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        // Fade-in all .organic-card on scroll
+        gsap.utils.toArray('.organic-card').forEach(card => {
+            gsap.from(card, {
+                scrollTrigger: { trigger: card, start: 'top 88%' },
+                y: 40, opacity: 0, duration: 0.7, ease: 'power2.out'
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

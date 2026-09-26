@@ -1,0 +1,264 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Campaign Studio | {{ project.business_name }}{% endblock %}
+
+{% block menu_campaigns %}active{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4" style="border-radius: 24px; background: #FFF;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Campaign Studio</h2>
+    </div>
+    <p class="text-muted mb-4">Orchestrate end-to-end marketing campaigns across multiple channels.</p>
+
+    <div class="row g-4">
+        <!-- Generator Form Area -->
+        <div class="col-md-4">
+            <div class="p-4 h-100" style="background:var(--color-bg-main); border-radius:16px; border:1px solid rgba(200,190,175,0.3);">
+                <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">New Campaign</h5>
+                <form id="campaignForm" onsubmit="generateCampaign(event)">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Campaign Name</label>
+                        <input type="text" name="name" class="form-control" required placeholder="e.g. Summer Launch '26" style="border-radius:10px;">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Campaign Goal</label>
+                        <select name="goal" class="form-select" required style="border-radius:10px;">
+                            <option value="Brand Awareness">Brand Awareness</option>
+                            <option value="Lead Generation">Lead Generation</option>
+                            <option value="Product Sales">Product Sales</option>
+                            <option value="Audience Education">Audience Education</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Duration</label>
+                        <select name="duration" class="form-select" required style="border-radius:10px;">
+                            <option value="7">7 Days (Sprint)</option>
+                            <option value="14">14 Days (Standard)</option>
+                            <option value="30">30 Days (Month-long)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase d-block mb-2" style="color:var(--color-copper-gold);">Target Platforms</label>
+                        
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="platforms[]" value="Instagram" id="chkInsta" checked>
+                            <label class="form-check-label" for="chkInsta">Instagram</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="platforms[]" value="LinkedIn" id="chkLink">
+                            <label class="form-check-label" for="chkLink">LinkedIn</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="platforms[]" value="Facebook" id="chkFB">
+                            <label class="form-check-label" for="chkFB">Facebook</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="platforms[]" value="Email" id="chkEmail">
+                            <label class="form-check-label" for="chkEmail">Email Newsletter</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="platforms[]" value="Blog" id="chkBlog">
+                            <label class="form-check-label" for="chkBlog">Blog / SEO</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="genCampaignBtn" class="btn btn-dark-pill w-100 py-2 mt-2">Generate Strategy &rarr;</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Output Area -->
+        <div class="col-md-8">
+            <div id="outputLoading" class="text-center p-5" style="display:none; height:100%;">
+                <div class="d-flex flex-column justify-content-center h-100 align-items-center">
+                    <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;"></div>
+                    <h4 class="mt-4 fw-bold" style="color:var(--color-navy-deep);">Architecting Campaign...</h4>
+                    <p class="text-muted">Analyzing Brand DNA, defining content pillars, and building a timeline.</p>
+                </div>
+            </div>
+            
+            <div id="outputArea" style="display:none;">
+                <div class="card shadow-sm border-0 mb-4" style="border-radius:16px;">
+                    <div class="card-header bg-white border-bottom pt-4 px-4">
+                        <h4 class="fw-bold mb-1" style="color:var(--color-navy-deep);">Campaign Strategy</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-uppercase small" style="color:var(--color-copper-gold);">Core Strategy</h6>
+                                <p id="strategyDisplay" class="text-muted"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-uppercase small" style="color:var(--color-copper-gold);">Audience Focus</h6>
+                                <p id="audienceDisplay" class="text-muted"></p>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h6 class="fw-bold text-uppercase small mb-3" style="color:var(--color-copper-gold);">Content Pillars</h6>
+                        <div id="pillarsDisplay" class="d-flex flex-wrap gap-2">
+                            <!-- Pillars injected here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="fw-bold mb-3" style="color:var(--color-navy-deep);">Content Timeline</h5>
+                <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="font-size:0.95rem;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="py-3 px-4 border-bottom-0 text-uppercase small fw-bold text-muted" style="width: 80px;">Day</th>
+                                    <th class="py-3 px-4 border-bottom-0 text-uppercase small fw-bold text-muted">Platform</th>
+                                    <th class="py-3 px-4 border-bottom-0 text-uppercase small fw-bold text-muted">Format</th>
+                                    <th class="py-3 px-4 border-bottom-0 text-uppercase small fw-bold text-muted">Topic & Objective</th>
+                                    <th class="py-3 px-4 border-bottom-0 text-uppercase small fw-bold text-muted text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timelineBody">
+                                <!-- Timeline rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="emptyState" class="text-center p-5 border h-100 d-flex flex-column justify-content-center" style="border-radius: 16px; border-style: dashed !important; color: #aaa;">
+                <div style="font-size:3.5rem; margin-bottom:15px;">📅</div>
+                <h4 class="mb-2 fw-bold text-dark">No Active Campaign</h4>
+                <p class="mb-0">Configure your goals on the left to generate a multi-channel campaign strategy.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function renderTimelineRow(item) {
+    const icons = {
+        'Instagram': '<span class="badge bg-danger">IG</span>',
+        'LinkedIn': '<span class="badge bg-primary">LI</span>',
+        'Facebook': '<span class="badge bg-info">FB</span>',
+        'Email': '<span class="badge bg-secondary">✉️</span>',
+        'Blog': '<span class="badge bg-dark">📝</span>'
+    };
+    
+    const icon = icons[item.platform] || `<span class="badge bg-light text-dark">${item.platform}</span>`;
+    
+    // Determine where to link to generate the asset
+    let generateLink = '';
+    if (['Instagram', 'LinkedIn', 'Facebook', 'Twitter', 'X'].includes(item.platform)) {
+        generateLink = `{% url 'branding:social_studio' project.pk %}`;
+    } else {
+        generateLink = `{% url 'branding:marketing_studio' project.pk %}`;
+    }
+    
+    return `
+    <tr>
+        <td class="py-3 px-4 fw-bold">Day ${item.scheduled_day}</td>
+        <td class="py-3 px-4">${icon} ${item.platform}</td>
+        <td class="py-3 px-4 text-muted">${item.content_type}</td>
+        <td class="py-3 px-4">
+            <div class="fw-bold">${item.topic}</div>
+            <small class="text-muted">${item.objective}</small>
+        </td>
+        <td class="py-3 px-4 text-end">
+            <a href="${generateLink}" class="btn btn-sm btn-outline-dark" style="border-radius:12px;">Create</a>
+        </td>
+    </tr>
+    `;
+}
+
+async function generateCampaign(event) {
+    event.preventDefault();
+    const form = event.target;
+    const btn = document.getElementById('genCampaignBtn');
+    
+    // Get all checked platforms
+    const platforms = [];
+    form.querySelectorAll('input[name="platforms[]"]:checked').forEach(cb => {
+        platforms.push(cb.value);
+    });
+    
+    if (platforms.length === 0) {
+        alert("Please select at least one target platform.");
+        return;
+    }
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+    btn.disabled = true;
+    
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('outputArea').style.display = 'none';
+    document.getElementById('outputLoading').style.display = 'block';
+
+    const formData = new FormData(form);
+    const data = {
+        action: 'generate',
+        name: formData.get('name'),
+        goal: formData.get('goal'),
+        duration: formData.get('duration'),
+        platforms: platforms
+    };
+
+    try {
+        const response = await fetch("{% url 'branding:campaign_studio' project.pk %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const resData = await response.json();
+        
+        if (response.ok && resData.success) {
+            // Populate UI
+            document.getElementById('strategyDisplay').innerText = resData.strategy;
+            document.getElementById('audienceDisplay').innerText = resData.audience_focus;
+            
+            const pillarsContainer = document.getElementById('pillarsDisplay');
+            pillarsContainer.innerHTML = '';
+            if (resData.content_pillars && Array.isArray(resData.content_pillars)) {
+                resData.content_pillars.forEach(p => {
+                    pillarsContainer.innerHTML += `<span class="badge bg-light text-dark border p-2" style="font-size:0.9rem;">${p}</span>`;
+                });
+            }
+            
+            const timelineBody = document.getElementById('timelineBody');
+            timelineBody.innerHTML = '';
+            if (resData.timeline && Array.isArray(resData.timeline)) {
+                resData.timeline.forEach(item => {
+                    timelineBody.innerHTML += renderTimelineRow(item);
+                });
+            }
+            
+            document.getElementById('outputLoading').style.display = 'none';
+            document.getElementById('outputArea').style.display = 'block';
+            document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert(resData.error || 'Something went wrong while generating.');
+            document.getElementById('outputLoading').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+    } catch (err) {
+        alert('Network error while generating.');
+        console.error(err);
+        document.getElementById('outputLoading').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Team Management | {{ project.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.hub-header {
+    margin-bottom: 40px;
+}
+.hub-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+}
+
+.table-container {
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+.table thead th {
+    color: var(--color-text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(200,190,175,0.3);
+}
+.table tbody td {
+    vertical-align: middle;
+    padding: 16px 12px;
+    border-bottom: 1px solid rgba(200,190,175,0.2);
+}
+
+.invite-card {
+    background: var(--color-bg-main);
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 12px;
+    padding: 24px;
+}
+</style>
+{% endblock %}
+
+{% block project_content %}
+<div class="hub-header">
+    <h1 class="hub-title">Workspace Team</h1>
+    <p class="text-muted">Manage access and collaboration roles for {{ project.business_name }}.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Active Members -->
+        <h4 style="font-family: 'Playfair Display', serif; color: var(--color-navy-deep); margin-bottom: 16px;">Active Members</h4>
+        <div class="table-container">
+            <table class="table table-borderless m-0">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Owner -->
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle" style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-navy-deep); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">
+                                    {{ project.user.email|slice:":1"|upper }}
+                                </div>
+                                <span style="font-weight: 600; color: var(--color-navy-deep);">{{ project.user.email }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-dark">Owner</span></td>
+                        <td>{{ project.created_at|date:"M j, Y" }}</td>
+                        <td>-</td>
+                    </tr>
+                    
+                    <!-- Team Members -->
+                    {% for member in members %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle" style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-sage-deep); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">
+                                    {{ member.user.email|slice:":1"|upper }}
+                                </div>
+                                <span style="font-weight: 600; color: var(--color-navy-deep);">{{ member.user.email }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ member.get_role_display }}</span></td>
+                        <td>{{ member.joined_at|date:"M j, Y" }}</td>
+                        <td>
+                            {% if role == 'OWNER' or role == 'ADMIN' %}
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_member">
+                                <input type="hidden" name="user_id" value="{{ member.user.id }}">
+                                <button class="btn btn-sm text-danger" onclick="return confirm('Remove member?');">Remove</button>
+                            </form>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pending Invitations -->
+        {% if invitations %}
+        <h4 style="font-family: 'Playfair Display', serif; color: var(--color-navy-deep); margin-bottom: 16px; margin-top: 32px;">Pending Invitations</h4>
+        <div class="table-container">
+            <table class="table table-borderless m-0">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Sent</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invitations %}
+                    <tr>
+                        <td>{{ inv.email }}</td>
+                        <td>{{ inv.get_role_display }}</td>
+                        <td>{{ inv.created_at|timesince }} ago</td>
+                        <td>
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="revoke_invite">
+                                <input type="hidden" name="invite_id" value="{{ inv.id }}">
+                                <button class="btn btn-sm btn-outline-danger">Revoke</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Invite Form -->
+        {% if role == 'OWNER' or role == 'ADMIN' %}
+        <div class="invite-card">
+            <h5 style="font-weight: 700; color: var(--color-navy-deep); margin-bottom: 16px;">Invite Member</h5>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="invite">
+                
+                <div class="mb-3">
+                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Email Address</label>
+                    <input type="email" name="email" class="form-control" required placeholder="colleague@example.com">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Role</label>
+                    <select name="role" class="form-select">
+                        <option value="ADMIN">Administrator</option>
+                        <option value="DESIGNER">Designer</option>
+                        <option value="MARKETING">Marketing Manager</option>
+                        <option value="CONTENT">Content Writer</option>
+                        <option value="VIEWER" selected>Viewer</option>
+                    </select>
+                </div>
+                
+                <button class="btn w-100" style="background: var(--color-gold-primary); color: #fff; font-weight: 600;">Send Invitation</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="invite-card" style="opacity: 0.7;">
+            <p class="text-muted m-0">Only Owners and Administrators can invite new members to this workspace.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

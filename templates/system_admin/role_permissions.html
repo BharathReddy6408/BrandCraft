@@ -1,0 +1,210 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Role & Permissions | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.controls-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+}
+
+
+.matrix-container {
+    overflow: hidden;
+}
+
+.matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.matrix-table th, .matrix-table td {
+    padding: 16px 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.matrix-table th {
+    background: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--admin-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.matrix-table th:first-child, .matrix-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+    color: var(--admin-text-main);
+}
+
+.matrix-table td:first-child {
+    font-size: 0.95rem;
+}
+
+.matrix-table td {
+    color: var(--admin-text-muted);
+}
+
+.matrix-table tr:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.matrix-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Custom Checkbox */
+.perm-checkbox {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid #cbd5e1;
+    background: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.perm-checkbox:checked {
+    background: var(--color-gold-primary);
+    border-color: var(--color-gold-primary);
+}
+
+.perm-checkbox:checked::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: white;
+    font-size: 12px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.perm-checkbox:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+}
+.empty-state i {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 16px;
+}
+.empty-state p {
+    color: var(--admin-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Role & Permissions</h1>
+        <p>Control system access using a permission matrix.</p>
+    </div>
+</div>
+
+<div class="controls-bar">
+    <button class="btn-3d-glass" onclick="openModal('addRoleModal')"><i class="fas fa-plus"></i> Add New Role</button>
+</div>
+
+<!-- Add Role Modal -->
+<div class="modal-overlay" id="addRoleModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Add New Role</h2>
+            <button type="button" class="btn-close" onclick="closeModal('addRoleModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'system_admin:create_role' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Role Name</label>
+                    <input type="text" name="name" class="custom-select" style="background-image: none;" placeholder="e.g. Editor, Manager" required>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Description (Optional)</label>
+                    <textarea name="description" class="custom-select" style="background-image: none; height: 80px;" placeholder="What can this role do?"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('addRoleModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass" style="margin: 0;">Create Role</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="matrix-container card-glass">
+    {% if roles %}
+    <table class="matrix-table">
+        <thead>
+            <tr>
+                <th>Permission Area</th>
+                {% for role in roles %}
+                <th>{{ role.name|title }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for perm in permissions %}
+            <tr>
+                <td>{{ perm.name }}</td>
+                {% for role in roles %}
+                <td>
+                    <!-- If this was functional, we'd check if role has perm -->
+                    <input type="checkbox" class="perm-checkbox" {% if forloop.parentloop.counter|add:forloop.counter|divisibleby:3 %}checked{% endif %}>
+                </td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{{ roles|length|add:1 }}" style="text-align: center; padding: 30px;">
+                    <i class="fas fa-lock" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 12px; display: block;"></i>
+                    <p style="color: var(--admin-text-muted); margin: 0;">No permissions have been defined in the system yet.</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-shield-alt"></i>
+        <h3>No Roles Defined</h3>
+        <p>You haven't created any roles yet. Click 'Add New Role' to get started.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

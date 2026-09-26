@@ -1,0 +1,1425 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Brand Identity Wizard | BrandCraft{% endblock %}
+
+{% block extra_css %}
+<style>
+.wizard-wrapper {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    background: #FDFBF7;
+}
+
+.wizard-card {
+    background: #FCF8F2;
+    border-radius: 24px;
+    border: 1px solid rgba(200,190,175,0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    padding: 48px;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Progress Stepper */
+.wizard-progress-container {
+    margin-bottom: 48px;
+    padding: 0 20px;
+}
+.wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+}
+.wizard-progress::before {
+    content: '';
+    position: absolute;
+    top: 18px; /* half of 36px indicator */
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: rgba(200,190,175,0.25);
+    z-index: 1;
+}
+.progress-line-active {
+    position: absolute;
+    top: 18px;
+    left: 20px;
+    height: 2px;
+    background: #17344F;
+    z-index: 2;
+    transition: width 0.4s ease;
+    width: 0%;
+}
+
+.step-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 3;
+    position: relative;
+    width: 60px;
+}
+.step-indicator {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid rgba(200,190,175,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    transition: all 0.3s ease;
+}
+.step-indicator.active {
+    border-color: #C68B3C;
+    background: #C68B3C;
+    color: #fff;
+    box-shadow: 0 0 0 6px #F7E4D0;
+}
+.step-indicator.completed {
+    border-color: #17344F;
+    background: #17344F;
+    color: #fff;
+}
+.step-indicator.completed::after {
+    content: '';
+}
+.step-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+}
+.step-indicator.active + .step-label {
+    color: #BA5F3A;
+    font-weight: 700;
+}
+
+/* Split Layout */
+.wizard-split {
+    display: flex;
+    gap: 48px;
+    min-height: 500px;
+}
+.wizard-form-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.wizard-illus-area {
+    flex: 0 0 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.wizard-illus-area img {
+    max-width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+/* Steps Containment */
+.wizard-step-content {
+    display: none;
+    flex-grow: 1;
+}
+.wizard-step-content.active {
+    display: block;
+}
+
+.step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 12px;
+}
+.step-desc {
+    color: var(--color-text-p);
+    font-size: 1rem;
+    margin-bottom: 32px;
+}
+
+/* Custom inputs */
+.wizard-card input[type="text"],
+.wizard-card textarea,
+.wizard-card select {
+    width: 100%;
+    background: #FFFFFF;
+    border: 1px solid rgba(200,190,175,0.5);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 1rem;
+    color: var(--color-navy-deep);
+    transition: all 0.2s ease;
+}
+.wizard-card input[type="text"]:focus,
+.wizard-card textarea:focus,
+.wizard-card select:focus {
+    background: #FFFFFF;
+    border-color: var(--color-gold-primary);
+    box-shadow: 0 0 0 3px rgba(198,139,60,0.15);
+    outline: none;
+}
+
+/* Industry Grid */
+.search-bar-wrapper {
+    position: relative;
+    margin-bottom: 24px;
+}
+.search-bar-wrapper span {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+}
+.search-bar-wrapper input {
+    padding-left: 48px !important;
+}
+
+.choices-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+/* Choices boxes */
+.choices-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.choice-box {
+    background: #FFFFFF;
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+}
+.choice-box:hover {
+    border-color: var(--color-gold-primary);
+    box-shadow: 0 4px 12px rgba(198,139,60,0.08);
+}
+.choice-box.selected {
+    border-color: var(--color-gold-primary);
+    background: rgba(198,139,60,0.02);
+    box-shadow: 0 0 0 2px rgba(198,139,60,0.3);
+}
+.choice-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: var(--color-bg-main);
+}
+.choice-title {
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    font-size: 0.95rem;
+}
+.choice-desc {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+/* Check icon for selected */
+.check-icon {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    background: var(--color-gold-primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.choice-box.selected .check-icon {
+    opacity: 1;
+}
+
+/* Color Swatches Selection */
+.swatch-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+.swatch-card {
+    background: var(--color-bg-main);
+    border: 1px solid rgba(200,190,175,0.4);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+.swatch-card:hover {
+    border-color: var(--color-gold-primary);
+}
+.swatch-card.selected {
+    background: #FFFFFF;
+    border-color: var(--color-navy-deep);
+    box-shadow: 0 0 0 3px rgba(23,52,79,0.1);
+}
+.swatch-palette {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.swatch-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.wizard-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 48px;
+    border-top: 1px solid rgba(200,190,175,0.25);
+    padding-top: 24px;
+}
+
+/* Scrollbar for grid */
+.choices-grid-3::-webkit-scrollbar {
+    width: 6px;
+}
+.choices-grid-3::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.choices-grid-3::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-wrapper">
+    <div class="wizard-card">
+        <!-- 8 step Progress Header -->
+        <div class="wizard-progress-container">
+            <div class="wizard-progress">
+                <div class="progress-line-active" id="progressLine"></div>
+                <div class="step-wrapper">
+                    <div class="step-indicator active" data-step="1">1</div>
+                    <div class="step-label">Brand<br>Details</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="2">2</div>
+                    <div class="step-label">Industry</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="3">3</div>
+                    <div class="step-label">Target<br>Audience</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="4">4</div>
+                    <div class="step-label">Brand<br>Personality</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="5">5</div>
+                    <div class="step-label">Color<br>Tone</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="6">6</div>
+                    <div class="step-label">Design<br>Style</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="7">7</div>
+                    <div class="step-label">Review</div>
+                </div>
+                <div class="step-wrapper">
+                    <div class="step-indicator" data-step="8">8</div>
+                    <div class="step-label">Launch</div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" id="wizardForm">
+            {% csrf_token %}
+            <div class="wizard-split">
+                <div class="wizard-form-area">
+                    <!-- Step 1: Business Name -->
+                    <div class="wizard-step-content active" data-step="1">
+                        <h2 class="step-title" style="color: #153C35;">Brand Details</h2>
+                        <div style="width: 48px; height: 3px; background: #BA5F3A; margin-bottom: 24px; border-radius: 2px;"></div>
+                        <p class="fw-bold" style="color: #BA5F3A; font-size: 1.1rem; margin-bottom: 8px;">What is the name of your brand and its core mission?</p>
+                        <p class="text-muted" style="margin-bottom: 32px; max-width: 90%;">This helps us understand your vision and create a brand identity that truly represents you.</p>
+                        
+                        <div class="mb-4 d-flex">
+                            <div style="background: #E8F5E9; border-radius: 12px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
+                                <span style="color: #2E7D32; font-size: 1.2rem;">🏢</span>
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <label class="fw-bold mb-1" style="color: #153C35;">Business Name</label>
+                                <p class="small text-muted mb-2">What is the name of your brand?</p>
+                                <div class="position-relative">
+                                    <input type="text" name="business_name" id="business_name" placeholder="e.g. EcoWave, TechNova" required style="border-radius: 12px; border: 1px solid #c2c2c2; padding: 16px 40px 16px 16px;">
+                                    <span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #888;">👤</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4 d-flex">
+                            <div style="background: #FFF3E0; border-radius: 12px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
+                                <span style="color: #E65100; font-size: 1.2rem;">🎯</span>
+                            </div>
+                            <div style="flex-grow: 1;">
+                                <label class="fw-bold mb-1" style="color: #153C35;">Business Goal / Idea</label>
+                                <p class="small text-muted mb-2">What is your brand's core mission or goal?</p>
+                                <div class="position-relative">
+                                    <textarea name="business_idea" id="business_idea" rows="4" placeholder="e.g. Providing carbon-neutral delivery solutions for small e-commerce stores..." required style="border-radius: 12px; border: 1px solid #c2c2c2; padding: 16px 16px 40px 16px; resize: none;"></textarea>
+                                    <div style="position: absolute; bottom: 12px; right: 16px; font-size: 0.85rem; color: #888; background: #fff; padding-left: 8px;">
+                                        <span style="color: #4CAF50;">🍃</span> 0 / 400
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Industry -->
+                    <div class="wizard-step-content" data-step="2">
+                        <h2 class="step-title">Industry</h2>
+                        <p class="step-desc">Which industry does your business operate in? This helps us tailor design styles, templates, and messaging.</p>
+                        
+                        <div class="search-bar-wrapper">
+                            <span>🔍</span>
+                            <input type="text" id="industrySearch" placeholder="Search industry..." onkeyup="filterIndustry()">
+                        </div>
+
+                        <div class="choices-grid-3" id="industryGrid">
+                            <div class="choice-box selected" onclick="selectChoice(this, 'industry', 'Creative Agency')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #FFF1E6;">🎨</div>
+                                <div>
+                                    <div class="choice-title">Creative Agency</div>
+                                    <div class="choice-desc">Design, branding, advertising, marketing</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Technology')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #E8F5E9;">💻</div>
+                                <div>
+                                    <div class="choice-title">Technology</div>
+                                    <div class="choice-desc">Software, IT services, SaaS, tech startups</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Healthcare')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #FFEBEE;">❤️</div>
+                                <div>
+                                    <div class="choice-title">Healthcare</div>
+                                    <div class="choice-desc">Hospitals, clinics, wellness, medical</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Finance')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #E8EAF6;">📈</div>
+                                <div>
+                                    <div class="choice-title">Finance</div>
+                                    <div class="choice-desc">Banking, insurance, fintech, consulting</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'E-commerce')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #FFF3E0;">🛒</div>
+                                <div>
+                                    <div class="choice-title">E-commerce</div>
+                                    <div class="choice-desc">Online stores, retail, marketplaces</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Education')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #FFF8E1;">🎓</div>
+                                <div>
+                                    <div class="choice-title">Education</div>
+                                    <div class="choice-desc">Schools, e-learning, coaching, training</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Real Estate')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #E1F5FE;">🏢</div>
+                                <div>
+                                    <div class="choice-title">Real Estate</div>
+                                    <div class="choice-desc">Property, construction, architecture</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Food & Beverage')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #E8F5E9;">☕</div>
+                                <div>
+                                    <div class="choice-title">Food & Beverage</div>
+                                    <div class="choice-desc">Restaurants, cafes, food brands</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Fashion & Lifestyle')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #FCE4EC;">👗</div>
+                                <div>
+                                    <div class="choice-title">Fashion & Lifestyle</div>
+                                    <div class="choice-desc">Apparel, accessories, lifestyle brands</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Travel & Hospitality')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #E0F7FA;">✈️</div>
+                                <div>
+                                    <div class="choice-title">Travel & Hospitality</div>
+                                    <div class="choice-desc">Hotels, tourism, transport, resorts</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Manufacturing')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #EDE7F6;">⚙️</div>
+                                <div>
+                                    <div class="choice-title">Manufacturing</div>
+                                    <div class="choice-desc">Factories, production, engineering</div>
+                                </div>
+                            </div>
+                            <div class="choice-box" onclick="selectChoice(this, 'industry', 'Other')">
+                                <div class="check-icon">✓</div>
+                                <div class="choice-icon" style="background: #FFF3E0;">...</div>
+                                <div>
+                                    <div class="choice-title">Other</div>
+                                    <div class="choice-desc">Not listed above? Choose this option</div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="industry" id="industry" value="Creative Agency">
+                    </div>
+
+                    <!-- Step 3: Target Audience -->
+                    <div class="wizard-step-content" data-step="3">
+                        <div style="display: flex; gap: 48px;">
+                            <!-- Left side -->
+                            <div style="flex: 1;">
+                                <h2 class="step-title" style="color: #153C35;">Target Audience</h2>
+                                <div style="width: 48px; height: 3px; background: #BA5F3A; margin-bottom: 24px; border-radius: 2px; position: relative;">
+                                    <div style="width: 6px; height: 6px; background: #BA5F3A; border-radius: 50%; position: absolute; right: -12px; top: -1.5px;"></div>
+                                </div>
+                                <p class="fw-bold" style="color: #153C35; font-size: 1.1rem; margin-bottom: 8px;">Let's define who your brand is speaking to.</p>
+                                <p class="text-muted" style="margin-bottom: 32px; max-width: 90%; color: #546E7A;">Understanding your audience helps us create visuals, messaging, and experiences that truly connect.</p>
+                                
+                                <div style="background: #FDFBF7; border-radius: 16px; padding: 24px; border: 1px solid #E0E0E0; margin-bottom: 24px;">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div style="background: #FFF3E0; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1.2rem;">
+                                            👥
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold" style="color: #153C35;">Describe your primary audience</div>
+                                            <div class="small text-muted">Include demographics, interests, behaviors, and pain points.</div>
+                                        </div>
+                                    </div>
+                                    <div class="position-relative">
+                                        <textarea name="target_audience" id="target_audience" rows="5" placeholder="Example: Young entrepreneurs (20-35) who value innovation, minimal design, and premium quality..." required style="border-radius: 12px; border: 1px solid #E0E0E0; padding: 16px; resize: none; background: #FDFBF7; font-size: 0.95rem; width: 100%; color: #153C35;"></textarea>
+                                        <div style="position: absolute; bottom: 12px; right: 16px; font-size: 0.75rem; color: #888;">
+                                            0 / 500
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="fw-bold mb-2" style="color: #153C35; font-size: 0.95rem;">Key Audience Attributes <span class="text-muted fw-normal">(Optional)</span></div>
+                                <p class="small text-muted mb-3">Select attributes that best match your audience.</p>
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                                    <div class="d-flex justify-content-between align-items-center" style="background: #FDFBF7; border: 1px solid #E0E0E0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                                        <span>📅 Age Group</span><span style="color:#888;">⌄</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center" style="background: #FDFBF7; border: 1px solid #E0E0E0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                                        <span>📍 Location</span><span style="color:#888;">⌄</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center" style="background: #FDFBF7; border: 1px solid #E0E0E0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                                        <span>❤️ Interests</span><span style="color:#888;">⌄</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center" style="background: #FDFBF7; border: 1px solid #E0E0E0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                                        <span>💲 Income Level</span><span style="color:#888;">⌄</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center" style="background: #FDFBF7; border: 1px solid #E0E0E0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                                        <span>📊 Behaviors</span><span style="color:#888;">⌄</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center" style="background: #FDFBF7; border: 1px solid #E0E0E0; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">
+                                        <span>⚠️ Pain Points</span><span style="color:#888;">⌄</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right side -->
+                            <div style="flex: 0 0 350px;">
+                                <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 20px; overflow: hidden; margin-bottom: 24px;">
+                                    <img src="{% static 'img/target_audience_3d.png' %}" style="width: 100%; display: block;" alt="Target Audience">
+                                </div>
+                                
+                                <div class="d-flex align-items-center mb-3">
+                                    <div style="background: #FFF3E0; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1.2rem;">
+                                        👤
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" style="color: #153C35; font-size: 0.95rem;">Quick Add Personas</div>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">Choose a common audience profile or create your own.</div>
+                                    </div>
+                                </div>
+
+                                <div id="dynamic_personas_container" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Brand Personality -->
+                    <div class="wizard-step-content" data-step="4">
+                        <div style="display: flex; gap: 48px;">
+                            <!-- Left side -->
+                            <div style="flex: 1;">
+                                <h2 class="step-title" style="color: #153C35;">Brand Personality</h2>
+                                <div style="width: 48px; height: 3px; background: #BA5F3A; margin-bottom: 24px; border-radius: 2px; position: relative;">
+                                    <div style="width: 6px; height: 6px; background: #BA5F3A; border-radius: 50%; position: absolute; right: -12px; top: -1.5px;"></div>
+                                </div>
+                                <p class="fw-bold" style="color: #BA5F3A; font-size: 1.1rem; margin-bottom: 8px;">How would you describe your brand's character and voice?</p>
+                                <p class="text-muted" style="margin-bottom: 32px; max-width: 90%; color: #546E7A;">This helps us shape your messaging, visuals, and the way your brand connects with the world.</p>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                                    <div class="choice-box selected p-3" onclick="selectChoice(this, 'brand_personality', 'Professional & Trustworthy')" style="border-radius: 12px; border-color: #E65100; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="background: #E65100;">✓</div>
+                                        <div style="background: #FFF3E0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 1.2rem; color: #E65100;">⭐</div>
+                                        <div class="choice-title text-center mb-1" style="color: #E65100; font-size: 0.9rem;">Professional & Trustworthy</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Reliable, credible and confident. Ideal for finance, legal, and corporate brands.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectChoice(this, 'brand_personality', 'Friendly & Approachable')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #E8F5E9; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 1.2rem; color: #2E7D32;">🍃</div>
+                                        <div class="choice-title text-center mb-1" style="color: #2E7D32; font-size: 0.9rem;">Friendly & Approachable</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Warm, welcoming and conversational. Ideal for consumer and lifestyle brands.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectChoice(this, 'brand_personality', 'Innovative & Modern')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #EDE7F6; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 1.2rem; color: #512DA8;">💡</div>
+                                        <div class="choice-title text-center mb-1" style="color: #512DA8; font-size: 0.9rem;">Innovative & Modern</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Forward-thinking, tech-savvy and bold. Ideal for startups and tech brands.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectChoice(this, 'brand_personality', 'Creative & Expressive')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #E3F2FD; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 1.2rem; color: #1565C0;">💎</div>
+                                        <div class="choice-title text-center mb-1" style="color: #1565C0; font-size: 0.9rem;">Creative & Expressive</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Original, artistic and full of personality. Ideal for design, media and creative brands.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectChoice(this, 'brand_personality', 'Caring & Compassionate')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #FCE4EC; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 1.2rem; color: #C2185B;">❤️</div>
+                                        <div class="choice-title text-center mb-1" style="color: #C2185B; font-size: 0.9rem;">Caring & Compassionate</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Empathetic, supportive and people-first. Ideal for health, wellness and non-profits.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectChoice(this, 'brand_personality', 'Luxurious & Premium')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #FFF8E1; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 1.2rem; color: #FF8F00;">👑</div>
+                                        <div class="choice-title text-center mb-1" style="color: #FF8F00; font-size: 0.9rem;">Luxurious & Premium</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Sophisticated, high-end and exclusive. Ideal for luxury and premium brands.</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="brand_personality" id="brand_personality" value="Professional & Trustworthy">
+
+                                <div class="mt-3 mb-4">
+                                    <label class="fw-bold mb-2" style="color: #BA5F3A; font-size: 0.95rem;">Have a specific personality in mind?</label>
+                                    <input type="text" id="custom_brand_personality" class="form-control" placeholder="E.g., Rebellious and Edgy..." style="border-radius: 8px; border: 1px solid #E0E0E0; padding: 12px 16px; font-size: 0.95rem; box-shadow: none;" onkeyup="setCustomPersonality(this.value)">
+                                </div>
+
+                                <!-- Tip Banner -->
+                                <div style="background: #FFF3E0; border: 1px solid #FFE0B2; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 1.2rem;">✨</span>
+                                    <span style="color: #153C35; font-size: 0.85rem;"><strong>Tip:</strong> You can fine-tune your brand personality later in your Brand Guidelines.</span>
+                                </div>
+                            </div>
+
+                            <!-- Right side -->
+                            <div style="flex: 0 0 350px;">
+                                <div style="background: #FDFBF7; border-radius: 20px; overflow: hidden; margin-bottom: 16px;">
+                                    <img src="{% static 'img/brand_personality_3d.png' %}" style="width: 100%; display: block; border-radius: 20px;" alt="Brand Personality">
+                                </div>
+                                
+                                <div style="background: #E8F5E9; border-radius: 16px; padding: 20px;">
+                                    <div class="d-flex align-items-center mb-2 gap-2">
+                                        <span style="background: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #2E7D32; font-size: 0.9rem;">✨</span>
+                                        <span class="fw-bold" style="color: #153C35; font-size: 0.95rem;">Why it matters</span>
+                                    </div>
+                                    <p class="mb-0" style="color: #153C35; font-size: 0.85rem; line-height: 1.5;">A clear brand personality helps build emotional connections and keeps your messaging consistent across every touchpoint.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Color Tone -->
+                    <div class="wizard-step-content" data-step="5">
+                        <div style="display: flex; gap: 48px;">
+                            <!-- Left side -->
+                            <div style="flex: 1;">
+                                <h2 class="step-title" style="color: #6A1B9A;">Color Tone</h2>
+                                <div style="width: 48px; height: 3px; background: #D81B60; margin-bottom: 24px; border-radius: 2px; position: relative;">
+                                    <div style="width: 6px; height: 6px; background: #D81B60; border-radius: 50%; position: absolute; right: -12px; top: -1.5px;"></div>
+                                </div>
+                                <p class="fw-bold" style="color: #D81B60; font-size: 1.1rem; margin-bottom: 8px;">What kind of mood and feeling should your brand colors convey?</p>
+                                <p class="text-muted" style="margin-bottom: 32px; max-width: 90%; color: #546E7A;">Colors influence emotions and perceptions. Choose a tone that best reflects your brand's personality and connects with your audience.</p>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                                    <div class="choice-box selected p-3" onclick="selectColorTone(this, 'Vibrant & Energetic', '#E91E63', '#F06292,#FF9800,#FFC107,#7E57C2', 'High energy, modern and attention-grabbing.')" style="border-radius: 12px; border-color: #D81B60; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="background: #D81B60;">✓</div>
+                                        <div style="background: #FCE4EC; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.2rem; color: #D81B60;">⚡</div>
+                                        <div class="choice-title mb-1" style="color: #D81B60; font-size: 0.9rem; text-align: left;">Vibrant & Energetic</div>
+                                        <div class="choice-desc mb-3" style="font-size: 0.75rem; text-align: left;">Bold, bright and lively colors that grab attention and create excitement.</div>
+                                        <div class="d-flex gap-2">
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #F06292;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #FF9800;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #FFC107;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #7E57C2;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectColorTone(this, 'Calm & Trustworthy', '#1976D2', '#1976D2,#42A5F5,#90CAF9,#E3F2FD', 'Cool, soothing and highly professional.')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #E3F2FD; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.2rem; color: #1976D2;">🛡️</div>
+                                        <div class="choice-title mb-1" style="color: #1976D2; font-size: 0.9rem; text-align: left;">Calm & Trustworthy</div>
+                                        <div class="choice-desc mb-3" style="font-size: 0.75rem; text-align: left;">Cool, soothing colors that build trust, reliability and professionalism.</div>
+                                        <div class="d-flex gap-2">
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #1976D2;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #42A5F5;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #90CAF9;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #E3F2FD;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectColorTone(this, 'Natural & Organic', '#388E3C', '#2E7D32,#66BB6A,#A5D6A7,#8D6E63', 'Earthy, sustainable and grounded.')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #E8F5E9; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.2rem; color: #388E3C;">🍃</div>
+                                        <div class="choice-title mb-1" style="color: #388E3C; font-size: 0.9rem; text-align: left;">Natural & Organic</div>
+                                        <div class="choice-desc mb-3" style="font-size: 0.75rem; text-align: left;">Earthy, green and neutral tones that communicate growth, health and sustainability.</div>
+                                        <div class="d-flex gap-2">
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #2E7D32;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #66BB6A;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #A5D6A7;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #8D6E63;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectColorTone(this, 'Warm & Friendly', '#F57C00', '#FF9800,#FFB74D,#FFE0B2,#D7CCC8', 'Inviting, comforting and approachable.')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #FFF3E0; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.2rem; color: #F57C00;">😊</div>
+                                        <div class="choice-title mb-1" style="color: #F57C00; font-size: 0.9rem; text-align: left;">Warm & Friendly</div>
+                                        <div class="choice-desc mb-3" style="font-size: 0.75rem; text-align: left;">Warm, inviting colors that create comfort, positivity and approachability.</div>
+                                        <div class="d-flex gap-2">
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #FF9800;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #FFB74D;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #FFE0B2;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #D7CCC8;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectColorTone(this, 'Elegant & Sophisticated', '#7B1FA2', '#8E24AA,#BA68C8,#E1BEE7,#A1887F', 'Luxurious, premium and timeless.')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #F3E5F5; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.2rem; color: #7B1FA2;">👑</div>
+                                        <div class="choice-title mb-1" style="color: #7B1FA2; font-size: 0.9rem; text-align: left;">Elegant & Sophisticated</div>
+                                        <div class="choice-desc mb-3" style="font-size: 0.75rem; text-align: left;">Rich, muted tones that reflect luxury, class and timeless appeal.</div>
+                                        <div class="d-flex gap-2">
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #8E24AA;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #BA68C8;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #E1BEE7;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #A1887F;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectColorTone(this, 'Minimal & Modern', '#424242', '#616161,#9E9E9E,#E0E0E0,#F5F5F5', 'Clean, simple and structured.')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon">✓</div>
+                                        <div style="background: #F5F5F5; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; font-size: 1.2rem; color: #424242;">⬜</div>
+                                        <div class="choice-title mb-1" style="color: #424242; font-size: 0.9rem; text-align: left;">Minimal & Modern</div>
+                                        <div class="choice-desc mb-3" style="font-size: 0.75rem; text-align: left;">Clean, neutral palette that emphasizes simplicity and modern aesthetics.</div>
+                                        <div class="d-flex gap-2">
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #616161;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #9E9E9E;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #E0E0E0;"></div>
+                                            <div style="width: 20px; height: 20px; border-radius: 50%; background: #F5F5F5;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="preferred_colors" id="preferred_colors" value="Vibrant & Energetic">
+
+                                <div class="mt-3 mb-4">
+                                    <label class="fw-bold mb-2" style="color: #6A1B9A; font-size: 0.95rem;">Have a specific color palette in mind?</label>
+                                    <input type="text" id="custom_preferred_colors" class="form-control" placeholder="E.g., Neon Green and Matte Black..." style="border-radius: 8px; border: 1px solid #E0E0E0; padding: 12px 16px; font-size: 0.95rem; box-shadow: none;" onkeyup="setCustomColors(this.value)">
+                                </div>
+
+                                <!-- Tip Banner -->
+                                <div style="background: #FCE4EC; border: 1px solid #F8BBD0; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 1.2rem;">💡</span>
+                                    <span style="color: #6A1B9A; font-size: 0.85rem;"><strong>Tip:</strong> You can customize and fine-tune your color palette in the next steps.</span>
+                                </div>
+                            </div>
+
+                            <!-- Right side -->
+                            <div style="flex: 0 0 450px;">
+                                <div style="background: #FDFBF7; border-radius: 20px; overflow: hidden; margin-bottom: 16px;">
+                                    <img src="{% static 'img/color_tone_3d.png' %}" style="width: 100%; display: block; border-radius: 20px;" alt="Color Tone">
+                                </div>
+                                
+                                <div style="background: #F4F6F5; border-radius: 16px; padding: 20px;">
+                                    <div class="fw-bold mb-3" style="color: #153C35; font-size: 0.95rem;">Selected Tone Preview</div>
+                                    <div class="d-flex gap-4 align-items-center">
+                                        <div class="d-flex gap-2" id="preview_swatches">
+                                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #F06292;"></div>
+                                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #FF9800;"></div>
+                                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #FFC107;"></div>
+                                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #7E57C2;"></div>
+                                        </div>
+                                        <div>
+                                            <div id="preview_tone_title" class="fw-bold mb-1" style="color: #E91E63; font-size: 0.95rem;">Vibrant & Energetic</div>
+                                            <div id="preview_tone_desc" style="color: #546E7A; font-size: 0.8rem;">High energy, modern and attention-grabbing.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 6: Design Style -->
+                    <div class="wizard-step-content" data-step="6">
+                        <div style="display: flex; gap: 48px;">
+                            <!-- Left side -->
+                            <div style="flex: 1;">
+                                <h2 class="step-title" style="color: #4527A0;">Design Style</h2>
+                                <div style="width: 48px; height: 3px; background: #673AB7; margin-bottom: 24px; border-radius: 2px; position: relative;">
+                                    <div style="width: 6px; height: 6px; background: #673AB7; border-radius: 50%; position: absolute; right: -12px; top: -1.5px;"></div>
+                                </div>
+                                <p class="fw-bold" style="color: #673AB7; font-size: 1.1rem; margin-bottom: 8px;">What visual style best represents your brand?</p>
+                                <p class="text-muted" style="margin-bottom: 32px; max-width: 90%; color: #546E7A;">Choose a design style that aligns with your brand personality and helps create a consistent visual experience.</p>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                                    <div class="choice-box selected p-3" onclick="selectDesignStyle(this, 'Modern & Clean')" style="border-radius: 12px; border-color: #673AB7; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="background: #673AB7; border-radius: 50%; width: 24px; height: 24px; right: 12px; top: 12px;">✓</div>
+                                        <div style="background: linear-gradient(135deg, #F3E5F5, #E1BEE7); width: 100%; height: 100px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                                            <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.7); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: absolute; transform: rotate(15deg);"></div>
+                                            <div style="width: 30px; height: 30px; background: rgba(103,58,183,0.5); border-radius: 50%; position: absolute; left: 30px; bottom: 20px;"></div>
+                                        </div>
+                                        <div class="choice-title text-center mb-1" style="color: #673AB7; font-size: 0.9rem;">Modern & Clean</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Clean layouts, ample whitespace, and a contemporary look that feels fresh and professional.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectDesignStyle(this, 'Minimal & Elegant')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="border-radius: 50%; width: 24px; height: 24px; right: 12px; top: 12px; background: transparent; border: 2px solid #E0E0E0; color: transparent;">✓</div>
+                                        <div style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); width: 100%; height: 100px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                            <div style="width: 40px; height: 50px; border: 4px solid #FF9800; border-bottom: none; border-radius: 20px 20px 0 0; position: absolute; top: 20px;"></div>
+                                            <div style="width: 20px; height: 20px; background: #FFB74D; border-radius: 50%; position: absolute; right: 40px; bottom: 30px;"></div>
+                                        </div>
+                                        <div class="choice-title text-center mb-1" style="color: #E65100; font-size: 0.9rem;">Minimal & Elegant</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Simple, refined and sophisticated design with a focus on clarity and premium feel.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectDesignStyle(this, 'Glassmorphism')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="border-radius: 50%; width: 24px; height: 24px; right: 12px; top: 12px; background: transparent; border: 2px solid #E0E0E0; color: transparent;">✓</div>
+                                        <div style="background: linear-gradient(135deg, #E0F7FA, #B2EBF2); width: 100%; height: 100px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                            <div style="width: 60px; height: 40px; background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.8); backdrop-filter: blur(4px); border-radius: 8px; position: absolute; transform: rotate(-10deg); z-index: 2;"></div>
+                                            <div style="width: 50px; height: 50px; background: #00BCD4; border-radius: 8px; position: absolute; left: 30px; opacity: 0.5; z-index: 1;"></div>
+                                        </div>
+                                        <div class="choice-title text-center mb-1" style="color: #00838F; font-size: 0.9rem;">Glassmorphism</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Glass-like transparent elements with blur and light effects for a modern, immersive feel.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectDesignStyle(this, 'Playful & Creative')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="border-radius: 50%; width: 24px; height: 24px; right: 12px; top: 12px; background: transparent; border: 2px solid #E0E0E0; color: transparent;">✓</div>
+                                        <div style="background: linear-gradient(135deg, #FCE4EC, #F8BBD0); width: 100%; height: 100px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                            <div style="width: 30px; height: 30px; background: #FF4081; border-radius: 50%; position: absolute; left: 30px; bottom: 20px;"></div>
+                                            <div style="width: 40px; height: 40px; background: #FFC107; border-radius: 8px; position: absolute; right: 30px; top: 20px;"></div>
+                                            <div style="width: 35px; height: 35px; background: #00BCD4; border-radius: 8px; position: absolute; transform: rotate(45deg);"></div>
+                                        </div>
+                                        <div class="choice-title text-center mb-1" style="color: #C2185B; font-size: 0.9rem;">Playful & Creative</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Vibrant colors, fun elements and bold visuals that bring energy and excitement.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectDesignStyle(this, 'Isometric 3D')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="border-radius: 50%; width: 24px; height: 24px; right: 12px; top: 12px; background: transparent; border: 2px solid #E0E0E0; color: transparent;">✓</div>
+                                        <div style="background: linear-gradient(135deg, #E8EAF6, #C5CAE9); width: 100%; height: 100px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                            <div style="width: 40px; height: 40px; background: #3F51B5; transform: rotateX(60deg) rotateZ(45deg); position: absolute; box-shadow: -10px 10px 20px rgba(0,0,0,0.2);"></div>
+                                            <div style="width: 20px; height: 20px; background: #5C6BC0; transform: rotateX(60deg) rotateZ(45deg); position: absolute; top: 20px; left: 30px;"></div>
+                                        </div>
+                                        <div class="choice-title text-center mb-1" style="color: #283593; font-size: 0.9rem;">Isometric 3D</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">3D isometric illustrations and depth to make your brand stand out with dimension.</div>
+                                    </div>
+                                    <div class="choice-box p-3" onclick="selectDesignStyle(this, 'Organic & Natural')" style="border-radius: 12px; position: relative; border-width: 2px;">
+                                        <div class="check-icon" style="border-radius: 50%; width: 24px; height: 24px; right: 12px; top: 12px; background: transparent; border: 2px solid #E0E0E0; color: transparent;">✓</div>
+                                        <div style="background: linear-gradient(135deg, #E8F5E9, #C8E6C9); width: 100%; height: 100px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                            <div style="width: 40px; height: 20px; background: #4CAF50; border-radius: 20px 0 20px 0; position: absolute; left: 20px;"></div>
+                                            <div style="width: 30px; height: 40px; background: #FFF3E0; border-radius: 4px; position: absolute; right: 30px; transform: rotate(15deg); box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>
+                                        </div>
+                                        <div class="choice-title text-center mb-1" style="color: #2E7D32; font-size: 0.9rem;">Organic & Natural</div>
+                                        <div class="choice-desc text-center" style="font-size: 0.75rem;">Earthy tones, natural textures and organic shapes that convey sustainability and trust.</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="preferred_style" id="preferred_style" value="Modern & Clean">
+
+                                <!-- Tip Banner -->
+                                <div style="background: #F3E5F5; border: 1px solid #E1BEE7; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 1.2rem;">💡</span>
+                                    <span style="color: #4527A0; font-size: 0.85rem;"><strong>Tip:</strong> You can customize fonts, layouts, and visual elements later in your brand settings.</span>
+                                </div>
+                            </div>
+
+                            <!-- Right side -->
+                            <div style="flex: 0 0 450px;">
+                                <div style="background: #FDFBF7; border-radius: 20px; overflow: hidden; margin-bottom: 16px;">
+                                    <div class="p-4 pb-0">
+                                        <h3 class="fw-bold mb-1" style="color: #153C35;">See Your Brand Come to Life</h3>
+                                        <p class="text-muted small mb-0">This is a preview of how your brand could look and feel with the selected style.</p>
+                                    </div>
+                                    <img src="{% static 'img/design_style_3d.png' %}" style="width: 100%; display: block;" alt="Design Style">
+                                </div>
+                                
+                                <div class="d-flex gap-3">
+                                    <div style="flex: 1; background: #F8F9FA; border-radius: 12px; padding: 16px;">
+                                        <div class="fw-bold mb-3" style="color: #673AB7; font-size: 0.85rem;">Style Characteristics</div>
+                                        <div class="d-flex align-items-center mb-2 gap-2">
+                                            <div style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #673AB7; color: #673AB7; display: flex; align-items: center; justify-content: center; font-size: 10px;">✓</div>
+                                            <span style="font-size: 0.75rem; color: #546E7A;">Clean typography and modern fonts</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2 gap-2">
+                                            <div style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #673AB7; color: #673AB7; display: flex; align-items: center; justify-content: center; font-size: 10px;">✓</div>
+                                            <span style="font-size: 0.75rem; color: #546E7A;">Balanced spacing and visual hierarchy</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div style="width: 16px; height: 16px; border-radius: 50%; border: 1px solid #673AB7; color: #673AB7; display: flex; align-items: center; justify-content: center; font-size: 10px;">✓</div>
+                                            <span style="font-size: 0.75rem; color: #546E7A;">Consistent components and layouts</span>
+                                        </div>
+                                    </div>
+                                    <div style="flex: 1; background: #F8F9FA; border-radius: 12px; padding: 16px;">
+                                        <div class="fw-bold mb-3" style="color: #673AB7; font-size: 0.85rem;">Preview Elements</div>
+                                        <div class="d-flex align-items-center mb-2 gap-2">
+                                            <div style="width: 20px; height: 8px; background: #673AB7; border-radius: 4px;"></div>
+                                            <span style="font-size: 0.75rem; color: #546E7A;">Buttons</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2 gap-2">
+                                            <div style="width: 16px; height: 12px; border: 1px solid #673AB7; border-radius: 2px;"></div>
+                                            <span style="font-size: 0.75rem; color: #546E7A;">Cards</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div style="font-size: 0.75rem; color: #673AB7;">☆</div>
+                                            <span style="font-size: 0.75rem; color: #546E7A;">Icons</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 7: Review -->
+                    <div class="wizard-step-content" data-step="7">
+                        <div style="display: flex; gap: 48px;">
+                            <!-- Left side -->
+                            <div style="flex: 1;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span style="font-size: 2rem; margin-right: 12px; color: #E65100;">✨</span>
+                                    <h2 class="step-title mb-0" style="color: #153C35; font-size: 2.2rem;">Review Your Brand</h2>
+                                </div>
+                                <p class="fw-bold" style="color: #673AB7; font-size: 1.05rem; margin-bottom: 24px;">Almost there! Review everything below and make sure it<br>perfectly represents your brand vision.</p>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                                    <!-- Business Name -->
+                                    <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: flex-start;">
+                                        <div style="background: #E8F5E9; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #2E7D32;">🏢</div>
+                                        <div>
+                                            <div style="color: #2E7D32; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Business Name</div>
+                                            <div id="rev_name" class="fw-bold" style="color: #153C35; font-size: 1.1rem; margin-bottom: 4px; word-break: break-word;"></div>
+                                            <div id="rev_ind" style="font-size: 0.8rem; color: #546E7A; line-height: 1.3;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Business Goal -->
+                                    <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: flex-start;">
+                                        <div style="background: #FFF3E0; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #E65100;">🎯</div>
+                                        <div>
+                                            <div style="color: #E65100; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Business Goal / Idea</div>
+                                            <div id="rev_goal" style="font-size: 0.8rem; color: #546E7A; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Target Audience -->
+                                    <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: flex-start;">
+                                        <div style="background: #F3E5F5; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #6A1B9A;">👥</div>
+                                        <div>
+                                            <div style="color: #6A1B9A; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Target Audience</div>
+                                            <div id="rev_audience" style="font-size: 0.8rem; color: #546E7A; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Brand Personality -->
+                                    <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: flex-start;">
+                                        <div style="background: #E3F2FD; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #1565C0;">👤</div>
+                                        <div>
+                                            <div style="color: #1565C0; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Brand Personality</div>
+                                            <div id="rev_pers" class="fw-bold" style="color: #153C35; font-size: 1rem; margin-bottom: 4px;"></div>
+                                            <div id="rev_pers_desc" style="font-size: 0.8rem; color: #546E7A; line-height: 1.4;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Color Tone -->
+                                    <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: flex-start;">
+                                        <div style="background: #FCE4EC; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #C2185B;">🎨</div>
+                                        <div>
+                                            <div style="color: #C2185B; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;">Color Tone</div>
+                                            <div id="rev_colors" class="d-flex gap-2 mb-3"></div>
+                                            <div id="rev_color_title" style="font-size: 0.8rem; color: #546E7A; line-height: 1.4;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Design Style -->
+                                    <div style="background: #FDFBF7; border: 1px solid #E0E0E0; border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: flex-start;">
+                                        <div style="background: #FCE4EC; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; color: #D81B60;">🖍️</div>
+                                        <div>
+                                            <div style="color: #D81B60; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;">Design Style</div>
+                                            <div id="rev_style" class="fw-bold" style="color: #153C35; font-size: 1rem; margin-bottom: 4px;"></div>
+                                            <div id="rev_style_desc" style="font-size: 0.8rem; color: #546E7A; line-height: 1.4;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Doing Great Banner -->
+                                <div style="background: #FFF8E1; border: 1px solid #FFECB3; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 20px;">
+                                    <div style="background: #FFE082; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #F57F17; flex-shrink: 0;">⭐</div>
+                                    <div style="flex: 1;">
+                                        <div class="fw-bold mb-1" style="color: #153C35; font-size: 1.05rem;">You're Doing Great!</div>
+                                        <div style="color: #546E7A; font-size: 0.85rem; line-height: 1.5;">Your brand is shaping up beautifully. Take a moment to review all the details on the left. You can go back and edit any step if you need to make changes.</div>
+                                    </div>
+                                    <div style="font-size: 3rem; flex-shrink: 0; margin-left: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">📋</div>
+                                </div>
+                            </div>
+
+                            <!-- Right side -->
+                            <div style="flex: 0 0 450px;">
+                                <div style="background: linear-gradient(180deg, #F3E5F5 0%, #FCE4EC 100%); border-radius: 24px; padding: 32px 24px; position: relative;">
+                                    <h3 class="fw-bold" style="color: #1A237E; font-size: 1.6rem; margin-bottom: 16px; padding-right: 100px;">Ready to Launch<br>Your Brand?</h3>
+                                    <div style="width: 48px; height: 3px; background: #FF9800; margin-bottom: 24px; border-radius: 2px;"></div>
+                                    <p style="color: #546E7A; font-size: 0.9rem; line-height: 1.5; margin-bottom: 24px; max-width: 250px;">Everything looks amazing! Click the button below to finalize and launch your brand journey.</p>
+                                    
+                                    <img src="{% static 'img/design_style_3d.png' %}" style="width: 110%; margin-left: -5%; display: block; margin-bottom: 24px;" alt="City Scene">
+                                    
+                                    <div style="background: #FFFFFF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column;">
+                                        <div class="fw-bold mb-4" style="color: #4527A0; font-size: 1rem;">What happens next?</div>
+                                        
+                                        <div style="display: flex; gap: 20px;">
+                                            <div style="flex: 1; display: flex; flex-direction: column; gap: 16px;">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div style="background: #F3E5F5; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6A1B9A;">🚀</div>
+                                                    <span style="font-size: 0.75rem; color: #37474F; font-weight: 500;">Your brand profile will be created.</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div style="background: #E8F5E9; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #2E7D32;">📄</div>
+                                                    <span style="font-size: 0.75rem; color: #37474F; font-weight: 500;">You'll get a brand guideline summary.</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div style="background: #E0F2F1; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #00695C;">🗂️</div>
+                                                    <span style="font-size: 0.75rem; color: #37474F; font-weight: 500;">You can download your brand assets.</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div style="background: #FFF3E0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #E65100;">🔔</div>
+                                                    <span style="font-size: 0.75rem; color: #37474F; font-weight: 500;">We'll notify you when everything is ready!</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div style="width: 140px; background: #FDFBF7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid #E0E0E0;">
+                                                <div style="font-size: 2rem; margin-bottom: 8px;">🎉</div>
+                                                <div class="fw-bold mb-2" style="color: #00695C; font-size: 0.9rem; line-height: 1.2;">Launch with Confidence!</div>
+                                                <div style="font-size: 0.65rem; color: #546E7A; line-height: 1.3;">Your brand journey starts now.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 8: Ready to Launch -->
+                    <div class="wizard-step-content" data-step="8">
+                        <h2 class="step-title">Launch Brand Workspace</h2>
+                        <p class="step-desc">All parameters locked. Click below to generate your complete AI brand kit, identity guidelines, logos, and campaigns.</p>
+                        
+                        <div class="text-center py-4">
+                            <div style="font-size:3.5rem; margin-bottom:16px;">🚀</div>
+                            <h5 class="fw-bold" style="color:var(--color-navy-deep);">Brand Generation Ready</h5>
+                            <p class="text-muted small">Our multi-agent AI engine will coordinate and create your assets.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side Illustration -->
+                <div class="wizard-illus-area" style="position: relative; background: #FDF4EB; border-radius: 20px; padding: 16px;">
+                    <!-- Top Overlay -->
+                    <div style="position: absolute; top: 32px; left: 32px; background: rgba(255,255,255,0.9); padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); z-index: 10;">
+                        <span style="color: #BA5F3A; font-size: 1.2rem;">💡</span>
+                        <span style="font-size: 0.9rem; font-weight: 500; color: #153C35; line-height: 1.4;">Great brands start<br>with a <span style="color: #BA5F3A;">clear story.</span></span>
+                    </div>
+                    
+                    <img src="{% static 'img/industry_city_3d.png' %}" alt="Industry Illustration" id="wizardIllus" style="width: 100%; border-radius: 16px;">
+                    
+                    <!-- Bottom Overlay -->
+                    <div style="position: absolute; bottom: 32px; left: 32px; right: 32px; background: rgba(255,255,255,0.95); padding: 16px 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); z-index: 10;">
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="background: #E8F5E9; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #153C35;">✨</span>
+                            <span style="font-size: 0.75rem; font-weight: 600; color: #153C35;">AI-Powered<br>Branding</span>
+                        </div>
+                        <div style="width: 1px; height: 30px; background: #E0E0E0;"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="background: #E8F5E9; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #153C35;">🛡️</span>
+                            <span style="font-size: 0.75rem; font-weight: 600; color: #153C35;">Tailored to<br>Your Vision</span>
+                        </div>
+                        <div style="width: 1px; height: 30px; background: #E0E0E0;"></div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span style="background: #FFF3E0; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #BA5F3A;">🚀</span>
+                            <span style="font-size: 0.75rem; font-weight: 600; color: #153C35;">Built for<br>Growth</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pro Tip Banner -->
+            <div style="background: #F1F6F4; border: 1px solid #E0E0E0; border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; margin-top: 32px;">
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-size: 1.2rem;">💡</span>
+                    <span style="color: #153C35; font-size: 0.9rem;"><strong>Pro Tip:</strong> The more details you provide, the smarter and more personalized your brand assets will be.</span>
+                </div>
+                <span style="color: #888; cursor: pointer;">✕</span>
+            </div>
+
+            <!-- Form Navigation Footer -->
+            <div class="wizard-footer" style="display: flex; align-items: center; padding-top: 24px; margin-top: 24px;">
+                <button type="button" class="btn px-4 fw-bold" id="prevBtn" onclick="nextPrev(-1)" style="display:none; background: #FFFFFF; color: #153C35; border: 1px solid #E0E0E0; border-radius: 12px; height: 48px;">&larr; Back</button>
+                <button type="button" class="btn px-4 fw-bold ms-2" id="editBtn" onclick="window.location.reload()" style="display:none; background: #E8F5E9; color: #2E7D32; border: 1px solid #C8E6C9; border-radius: 12px; height: 48px;">📝 Edit Any Step</button>
+                <div id="infoBanner" style="background: #F1F8F6; color: #153C35; padding: 12px 24px; border-radius: 12px; font-size: 0.85rem; flex-grow: 1; text-align: center; margin: 0 24px;">
+                    <span style="color: #388E3C; margin-right: 8px;">ⓘ</span> This information helps AI generate a brand identity that truly represents you.
+                </div>
+                <button type="button" class="btn px-5 ms-auto fw-bold" id="nextBtn" onclick="nextPrev(1)" style="background:#153C35; color:#fff; border-radius: 12px; height: 48px;">Next Step &rarr;</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const totalSteps = 8;
+
+function showStep(n) {
+    const steps = document.getElementsByClassName("wizard-step-content");
+    
+    // Hide all steps first
+    for(let i=0; i<steps.length; i++) {
+        steps[i].classList.remove("active");
+    }
+    steps[n - 1].classList.add("active");
+    
+    // Manage indicator active state
+    const indicators = document.getElementsByClassName("step-indicator");
+    for (let i = 0; i < indicators.length; i++) {
+        indicators[i].classList.remove("active");
+        if (i < n - 1) {
+            indicators[i].classList.add("completed");
+            indicators[i].innerText = ""; // Clear text for checkmark
+        } else {
+            indicators[i].classList.remove("completed");
+            indicators[i].innerText = i + 1; // Restore number
+        }
+    }
+    indicators[n - 1].classList.add("active");
+    
+    // Line width - Calculate based on active step relative to total
+    const percentage = ((n - 1) / (totalSteps - 1)) * 100;
+    document.getElementById("progressLine").style.width = `calc(${percentage}% - 40px)`; 
+
+    // Manage Buttons
+    if (n === 1) {
+        document.getElementById("prevBtn").style.display = "none";
+        document.getElementById("editBtn").style.display = "none";
+    } else if (n === 7) {
+        document.getElementById("prevBtn").style.display = "inline-block";
+        document.getElementById("editBtn").style.display = "inline-block";
+    } else {
+        document.getElementById("prevBtn").style.display = "inline-block";
+        document.getElementById("editBtn").style.display = "none";
+    }
+
+    if (n === totalSteps) {
+        document.getElementById("nextBtn").innerText = "Launch Workspace →";
+        document.getElementById("nextBtn").style.background = "#BA5F3A";
+        document.getElementById("nextBtn").style.border = "none";
+    } else {
+        document.getElementById("nextBtn").innerText = "Next Step →";
+        
+        // Custom button colors for specific steps
+        if (n === 5) {
+            document.getElementById("nextBtn").style.background = "linear-gradient(90deg, #E91E63, #FF9800)";
+            document.getElementById("nextBtn").style.border = "none";
+        } else if (n === 6) {
+            document.getElementById("nextBtn").style.background = "linear-gradient(90deg, #673AB7, #FF5722)";
+            document.getElementById("nextBtn").style.border = "none";
+        } else if (n === 7) {
+            document.getElementById("nextBtn").innerText = "🚀 Launch My Brand ✨";
+            document.getElementById("nextBtn").style.background = "linear-gradient(90deg, #E91E63, #FF9800)";
+            document.getElementById("nextBtn").style.border = "none";
+        } else {
+            document.getElementById("nextBtn").style.background = "#153C35";
+            document.getElementById("nextBtn").style.border = "none";
+        }
+    }
+    
+    let infoBanner = document.getElementById("infoBanner");
+    if (infoBanner) {
+        infoBanner.style.display = (n === 0) ? "block" : "none";
+    }
+    
+    // Dynamic Personas for step 3
+    if (n === 3) {
+        const ind = document.getElementById("industrySearch") ? document.getElementById("industrySearch").value : document.getElementById("industry").value;
+        const container = document.getElementById("dynamic_personas_container");
+        
+        let personas = [];
+        if (ind === 'Technology & Software') personas = [{i: '💻', n: 'Tech Enthusiasts'}, {i: '🏢', n: 'B2B Enterprises'}, {i: '👩‍💻', n: 'Developers'}];
+        else if (ind === 'Retail & E-commerce') personas = [{i: '🛍️', n: 'Online Shoppers'}, {i: '🏷️', n: 'Bargain Hunters'}, {i: '🎁', n: 'Gift Buyers'}];
+        else if (ind === 'Healthcare & Wellness') personas = [{i: '🏃', n: 'Fitness Enthusiasts'}, {i: '🩺', n: 'Patients'}, {i: '🧘', n: 'Wellness Seekers'}];
+        else if (ind === 'Finance & Insurance') personas = [{i: '📈', n: 'Investors'}, {i: '💼', n: 'Young Professionals'}, {i: '👪', n: 'Families'}];
+        else if (ind === 'Food & Beverage') personas = [{i: '🍔', n: 'Foodies'}, {i: '🥗', n: 'Health Conscious'}, {i: '👪', n: 'Families'}];
+        else if (ind === 'Creative Agency') personas = [{i: '🏪', n: 'Small Businesses'}, {i: '🚀', n: 'Startups'}, {i: '🏢', n: 'Corporate Clients'}];
+        else if (ind === 'Real Estate') personas = [{i: '🔑', n: 'First-time Buyers'}, {i: '💰', n: 'Investors'}, {i: '📦', n: 'Renters'}];
+        else if (ind === 'Education & Coaching') personas = [{i: '🎓', n: 'Students'}, {i: '💼', n: 'Professionals'}, {i: '❤️', n: 'Parents'}];
+        else personas = [{i: '💼', n: 'Young Professionals'}, {i: '🏢', n: 'Business Owners'}, {i: '🎓', n: 'Students'}, {i: '❤️', n: 'Parents'}];
+        
+        container.innerHTML = '';
+        personas.forEach((p, idx) => {
+            let activeStyle = (idx === 0) ? 'background: #FCF8F2; border: 1px solid #BA5F3A; font-weight: 600;' : 'background: #FDFBF7; border: 1px solid #E0E0E0; font-weight: 500;';
+            container.innerHTML += `
+                <div class="d-flex align-items-center px-3 py-2 persona-pill" onclick="selectPersona(this, '${p.n}')" style="${activeStyle} border-radius: 8px; cursor: pointer; color: #153C35; font-size: 0.85rem;">
+                    <span style="margin-right: 12px;">${p.i}</span> ${p.n}
+                </div>
+            `;
+        });
+        
+        container.innerHTML += `
+            <div class="d-flex align-items-center px-3 py-2" onclick="document.getElementById('target_audience').focus()" style="background: #FDFBF7; border: 1px dashed #c2c2c2; border-radius: 8px; cursor: pointer; color: #153C35; font-size: 0.85rem; font-weight: 500;">
+                <span style="margin-right: 12px; border: 1px solid #153C35; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px;">+</span> Custom Persona
+            </div>
+        `;
+    }
+    
+    // Update review data on step 7
+    if (n === 7) {
+        document.getElementById("rev_name").innerText = document.getElementById("business_name").value || 'Not provided';
+        document.getElementById("rev_ind").innerText = document.getElementById("industry").value || 'Not provided';
+        document.getElementById("rev_goal").innerText = document.getElementById("business_idea").value || 'Not provided';
+        document.getElementById("rev_audience").innerText = document.getElementById("target_audience").value || 'Not provided';
+        
+        // Personality
+        const pers = document.getElementById("brand_personality").value;
+        document.getElementById("rev_pers").innerText = pers;
+        
+        // Color Tone mapping
+        const colorVal = document.getElementById("preferred_colors").value;
+        let colorSwatches = [];
+        let colorDesc = "";
+        
+        if(colorVal === 'Vibrant & Energetic') { colorSwatches = ['#F06292','#FF9800','#FFC107','#7E57C2']; colorDesc = "High energy, modern and attention-grabbing."; }
+        else if(colorVal === 'Calm & Trustworthy') { colorSwatches = ['#1976D2','#42A5F5','#90CAF9','#E3F2FD']; colorDesc = "Cool, soothing and highly professional."; }
+        else if(colorVal === 'Natural & Organic') { colorSwatches = ['#2E7D32','#66BB6A','#A5D6A7','#8D6E63']; colorDesc = "Earthy, sustainable and grounded."; }
+        else if(colorVal === 'Warm & Friendly') { colorSwatches = ['#FF9800','#FFB74D','#FFE0B2','#D7CCC8']; colorDesc = "Inviting, comforting and approachable."; }
+        else if(colorVal === 'Elegant & Sophisticated') { colorSwatches = ['#8E24AA','#BA68C8','#E1BEE7','#A1887F']; colorDesc = "Luxurious, premium and timeless."; }
+        else if(colorVal === 'Minimal & Modern') { colorSwatches = ['#616161','#9E9E9E','#E0E0E0','#F5F5F5']; colorDesc = "Clean, simple and structured."; }
+        else { colorSwatches = []; colorDesc = "Custom Color Palette"; }
+        
+        const revColorsContainer = document.getElementById("rev_colors");
+        revColorsContainer.innerHTML = '';
+        if (colorSwatches.length > 0) {
+            colorSwatches.forEach(c => {
+                let d = document.createElement('div');
+                d.style.width = '24px'; d.style.height = '24px'; d.style.borderRadius = '6px'; d.style.background = c;
+                revColorsContainer.appendChild(d);
+            });
+            document.getElementById("rev_color_title").innerText = colorVal + "\n" + colorDesc;
+        } else {
+            document.getElementById("rev_color_title").innerText = colorVal + "\n" + colorDesc;
+            let d = document.createElement('div');
+            d.style.fontSize = '24px';
+            d.innerText = '✨';
+            revColorsContainer.appendChild(d);
+        }
+        
+        // Design Style
+        document.getElementById("rev_style").innerText = document.getElementById("preferred_style").value;
+    }
+}
+
+function selectPersona(element, text) {
+    const siblings = document.querySelectorAll('.persona-pill');
+    for (let sib of siblings) {
+        sib.style.background = "#FDFBF7";
+        sib.style.borderColor = "#E0E0E0";
+        sib.style.fontWeight = "500";
+    }
+    element.style.background = "#FCF8F2";
+    element.style.borderColor = "#BA5F3A";
+    element.style.fontWeight = "600";
+    
+    // Append to textarea
+    const ta = document.getElementById('target_audience');
+    if (ta.value.length > 0 && !ta.value.endsWith(', ') && !ta.value.endsWith(' ')) {
+        ta.value += ', ' + text;
+    } else {
+        ta.value += text;
+    }
+}
+
+function nextPrev(n) {
+    const steps = document.getElementsByClassName("wizard-step-content");
+    
+    // Validate current step fields before going next
+    if (n === 1) {
+        const activeInputs = steps[currentStep - 1].querySelectorAll("input[required], textarea[required]");
+        for (let input of activeInputs) {
+            if (!input.value.trim()) {
+                input.reportValidity();
+                return;
+            }
+        }
+    }
+
+    currentStep += n;
+
+    if (currentStep > totalSteps) {
+        // Submit Form
+        document.getElementById("wizardForm").submit();
+        return;
+    }
+
+    showStep(currentStep);
+    
+    // Soft GSAP animation for content slide
+    if (typeof gsap !== 'undefined') {
+        gsap.from(steps[currentStep - 1], { duration: 0.3, y: 15, opacity: 0, ease: 'power2.out' });
+    }
+}
+
+function selectChoice(element, inputId, val) {
+    // Deselect siblings
+    const siblings = element.parentElement.children;
+    for (let sib of siblings) {
+        sib.classList.remove("selected");
+    }
+    element.classList.add("selected");
+    document.getElementById(inputId).value = val;
+    
+    // Clear custom input if selecting a preset
+    if (inputId === 'brand_personality') {
+        const customInput = document.getElementById('custom_brand_personality');
+        if(customInput) customInput.value = '';
+    }
+}
+
+function selectColorTone(element, val, primaryColor, swatches, desc) {
+    // Deselect siblings
+    const siblings = element.parentElement.children;
+    for (let sib of siblings) {
+        sib.classList.remove("selected");
+    }
+    element.classList.add("selected");
+    document.getElementById("preferred_colors").value = val;
+    
+    // Clear custom input if selecting a preset
+    const customInput = document.getElementById('custom_preferred_colors');
+    if(customInput) customInput.value = '';
+    
+    // Update preview box dynamically
+    document.getElementById("preview_tone_title").innerText = val;
+    document.getElementById("preview_tone_title").style.color = primaryColor;
+    document.getElementById("preview_tone_desc").innerText = desc;
+    
+    const colors = swatches.split(',');
+    const previewContainer = document.getElementById("preview_swatches");
+    previewContainer.innerHTML = '';
+    
+    colors.forEach(color => {
+        let div = document.createElement("div");
+        div.style.width = "32px";
+        div.style.height = "32px";
+        div.style.borderRadius = "8px";
+        div.style.background = color.trim();
+        previewContainer.appendChild(div);
+    });
+}
+
+function selectDesignStyle(element, val) {
+    // Deselect siblings
+    const siblings = element.parentElement.children;
+    for (let sib of siblings) {
+        sib.classList.remove("selected");
+    }
+    element.classList.add("selected");
+    document.getElementById("preferred_style").value = val;
+}
+
+// Search filtering for industry
+function filterIndustry() {
+    const input = document.getElementById('industrySearch');
+    const filter = input.value.toLowerCase();
+    const grid = document.getElementById('industryGrid');
+    const cards = grid.getElementsByClassName('choice-box');
+    
+    for (let i = 0; i < cards.length; i++) {
+        const title = cards[i].querySelector('.choice-title').innerText.toLowerCase();
+        const desc = cards[i].querySelector('.choice-desc').innerText.toLowerCase();
+        if (title.indexOf(filter) > -1 || desc.indexOf(filter) > -1) {
+            cards[i].style.display = "";
+        } else {
+            cards[i].style.display = "none";
+        }
+    }
+}
+
+function setCustomPersonality(val) {
+    if (val.trim() === '') return;
+    document.getElementById('brand_personality').value = val;
+    // deselect cards
+    const siblings = document.querySelectorAll('[data-step="4"] .choice-box');
+    for (let sib of siblings) {
+        sib.classList.remove("selected");
+    }
+}
+
+function setCustomColors(val) {
+    if (val.trim() === '') return;
+    document.getElementById('preferred_colors').value = val;
+    // deselect cards
+    const siblings = document.querySelectorAll('[data-step="5"] .choice-box');
+    for (let sib of siblings) {
+        sib.classList.remove("selected");
+    }
+    // Update preview
+    document.getElementById("preview_tone_title").innerText = "Custom Palette";
+    document.getElementById("preview_tone_title").style.color = "#4527A0";
+    document.getElementById("preview_tone_desc").innerText = val;
+    document.getElementById("preview_swatches").innerHTML = '<div style="font-size: 24px; color: #BA5F3A;">✨</div>';
+}
+
+// Init
+showStep(currentStep);
+</script>
+{% endblock %}

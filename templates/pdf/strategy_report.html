@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page { size: A4; margin: 2cm; @frame footer { -pdf-frame-content: footerContent; bottom: 1cm; margin-left: 2cm; margin-right: 2cm; height: 1cm; } }
+        body { font-family: Helvetica, Arial, sans-serif; color: #333333; line-height: 1.6; }
+        .cover { text-align: center; padding-top: 150px; }
+        .cover-title { font-size: 36pt; color: #17344F; margin-bottom: 20px; }
+        .cover-subtitle { font-size: 18pt; color: #C68B3C; margin-bottom: 50px; }
+        .page-break { pdf-pagebreak-before: always; }
+        h1 { color: #17344F; font-size: 24pt; border-bottom: 1px solid #C8BEAF; padding-bottom: 10px; margin-bottom: 20px; margin-top: 40px; }
+        h2 { color: #17344F; font-size: 16pt; margin-top: 30px; }
+        p { font-size: 11pt; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div id="footerContent" style="text-align: center; color: #999; font-size: 9pt;">
+        BrandCraft | {{ report.project.business_name }} Strategy Report | <pdf:pagenumber>
+    </div>
+    <div class="cover">
+        <div class="cover-subtitle">BRANDCRAFT</div>
+        <div class="cover-title">{{ report.project.business_name|upper }}</div>
+        <div class="cover-subtitle" style="color: #666; font-size: 14pt;">BRAND STRATEGY REPORT</div>
+        <div style="margin-top: 50px; font-size: 12pt; color: #999;">Version {{ report.version }} | Generated {{ report.created_at|date:"F j, Y" }}</div>
+    </div>
+    <div class="page-break"></div>
+    <h1>Brand Foundation</h1>
+    <p style="font-style: italic; color: #666; margin-bottom: 30px;">{{ data.ai_narrative }}</p>
+    <h2>Overview</h2>
+    <p><strong>Business Name:</strong> {{ data.overview.name }}</p>
+    <p><strong>Industry:</strong> {{ data.overview.industry }}</p>
+    <p><strong>Target Audience:</strong> {{ data.overview.target_audience }}</p>
+    <h2>Strategic DNA</h2>
+    <p><strong>Mission:</strong> {{ data.dna.mission }}</p>
+    <p><strong>Vision:</strong> {{ data.dna.vision }}</p>
+    <p><strong>USP:</strong> {{ data.dna.usp }}</p>
+</body>
+</html>

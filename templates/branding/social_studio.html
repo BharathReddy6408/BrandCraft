@@ -1,0 +1,283 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Social Media Studio | {{ project.business_name }}{% endblock %}
+
+{% block menu_social %}active{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4" style="border-radius: 24px; background: #FFF;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Social Media Studio</h2>
+    </div>
+    <p class="text-muted mb-4">Generate platform-optimized social content for {{ project.business_name }}.</p>
+
+    <!-- Platform Selection -->
+    <ul class="nav nav-pills mb-4 border-bottom pb-3" id="socialTabs" role="tablist" style="gap:8px;">
+        <li class="nav-item">
+            <button class="nav-link active btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#instagramForm" type="button" role="tab">Instagram</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#linkedinForm" type="button" role="tab">LinkedIn</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#twitterForm" type="button" role="tab">X / Twitter</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#facebookForm" type="button" role="tab">Facebook</button>
+        </li>
+    </ul>
+
+    <div class="row g-4">
+        <!-- Generator Form Area -->
+        <div class="col-md-5">
+            <div class="p-4 h-100" style="background:var(--color-bg-main); border-radius:16px; border:1px solid rgba(200,190,175,0.3);">
+                <form id="socialForm" onsubmit="generateSocialPost(event)">
+                    {% csrf_token %}
+                    <!-- We use hidden input to track current selected platform -->
+                    <input type="hidden" name="platform" id="selectedPlatform" value="Instagram">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Post Goal</label>
+                        <select name="goal" class="form-select" required style="border-radius:10px;">
+                            <option value="Engagement">Engagement & Community</option>
+                            <option value="Education">Education & Value</option>
+                            <option value="Promotion">Sales & Promotion</option>
+                            <option value="Inspiration">Inspiration & Lifestyle</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Topic / Subject</label>
+                        <input type="text" name="topic" class="form-control" required placeholder="e.g. Behind the scenes of our new launch" style="border-radius:10px;">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Key Message to Include</label>
+                        <textarea name="message" class="form-control" rows="3" required placeholder="What must be mentioned?" style="border-radius:10px;"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Content Style</label>
+                        <select name="style" class="form-select" required style="border-radius:10px;">
+                            <option value="Authentic">Authentic / Raw</option>
+                            <option value="Polished">Polished / Professional</option>
+                            <option value="Humorous">Humorous / Witty</option>
+                            <option value="Data-driven">Data-driven / Factual</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" id="genSocialBtn" class="btn btn-dark-pill w-100 py-2">Generate Post &rarr;</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Output Area -->
+        <div class="col-md-7">
+            <div id="outputLoading" class="text-center p-5" style="display:none;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="mt-3 fw-bold text-muted">Crafting your social media post...</h5>
+            </div>
+            
+            <div id="outputArea" style="display:none;">
+                <div class="card shadow-sm border-0" style="border-radius:16px; overflow:hidden;">
+                    <div class="card-header bg-white border-bottom pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div id="platformIcon" style="font-size:1.5rem; margin-right:10px;">📱</div>
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color:var(--color-navy-deep);">Generated Post</h5>
+                                <small class="text-muted" id="postPlatformLabel">Instagram</small>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-light-pill dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Actions
+                            </button>
+                            <ul class="dropdown-menu shadow-sm" style="border-radius:12px;">
+                                <li><button class="dropdown-item" onclick="copyCaption()">Copy Caption</button></li>
+                                <li><button class="dropdown-item text-primary" onclick="generateVisual()">Generate Image from Prompt</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body p-4 bg-light" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                        <!-- Social Preview Mockup -->
+                        <div class="bg-white p-3 shadow-sm mx-auto" style="border-radius:8px; max-width:450px; border:1px solid #e0e0e0;">
+                            <div class="d-flex align-items-center mb-3">
+                                <div style="width:32px; height:32px; border-radius:50%; background:var(--color-copper-gold); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:10px;">{{ project.business_name|make_list|first }}</div>
+                                <span class="fw-bold" style="font-size:0.9rem;">{{ project.business_name }}</span>
+                            </div>
+                            
+                            <div class="mb-3 text-muted text-center p-5 bg-light" style="border-radius:4px; border:1px dashed #ccc;" id="imagePromptDisplay">
+                                [ Image Prompt Placeholder ]
+                            </div>
+                            
+                            <div id="captionDisplay" style="font-size:0.9rem; line-height:1.4; white-space: pre-wrap;"></div>
+                            
+                            <div id="hashtagsDisplay" class="mt-2 text-primary" style="font-size:0.9rem; line-height:1.4;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="emptyState" class="text-center p-5 border h-100 d-flex flex-column justify-content-center" style="border-radius: 16px; border-style: dashed !important; color: #aaa;">
+                <div style="font-size:3rem; margin-bottom:10px;">📱</div>
+                <p class="mb-0 fw-bold text-dark">No social posts yet.</p>
+                <p class="small">Select a platform and generate your first post.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Content Library -->
+    <div class="mt-5 pt-4 border-top">
+        <h4 class="fw-bold mb-4" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Recent Posts</h4>
+        {% if recent_posts %}
+        <div class="row g-3">
+            {% for post in recent_posts %}
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm" style="border-radius:16px;">
+                    <div class="card-body p-3 position-relative d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-light text-dark">{{ post.platform }}</span>
+                            <small class="text-muted" style="font-size:0.7rem;">{{ post.created_at|date:"M d" }}</small>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-truncate" style="color:var(--color-navy-deep); font-size:0.9rem;">{{ post.title }}</h6>
+                        
+                        <div class="text-muted small mt-2 flex-grow-1" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            {{ post.caption }}
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-sm btn-outline-dark w-100" style="border-radius:12px;" onclick="loadHistoryItem('{{ post.platform }}', {{ post.content_json|safe }})">View</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted small">Your generated content library is currently empty.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Tab tracking for hidden input
+document.querySelectorAll('button[data-bs-toggle="pill"]').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', event => {
+        document.getElementById('selectedPlatform').value = event.target.innerText;
+    });
+});
+
+function updatePreview(platform, json) {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('outputArea').style.display = 'block';
+    
+    document.getElementById('postPlatformLabel').innerText = platform;
+    
+    // Icon mapping
+    const icons = {'Instagram': '📸', 'LinkedIn': '💼', 'X / Twitter': '🐦', 'Twitter': '🐦', 'Facebook': '📘'};
+    document.getElementById('platformIcon').innerText = icons[platform] || '📱';
+    
+    if(json.image_prompt) {
+        let seed = Math.floor(Math.random() * 1000000);
+        let encodedPrompt = encodeURIComponent(json.image_prompt);
+        let imgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true&seed=${seed}&model=flux`;
+        document.getElementById('imagePromptDisplay').innerHTML = `
+            <img src="${imgUrl}" class="img-fluid rounded mb-2 w-100" style="max-height: 250px; object-fit: cover; border: 1px solid #ddd;">
+            <div class="small text-muted fst-italic mt-2">Generated based on: "${json.image_prompt}"</div>
+        `;
+        document.getElementById('imagePromptDisplay').className = "mb-3 text-center p-3 bg-white";
+    } else {
+        document.getElementById('imagePromptDisplay').innerHTML = `<i>Suggested Image:</i><br>No image needed.`;
+        document.getElementById('imagePromptDisplay').className = "mb-3 text-muted text-center p-5 bg-light";
+    }
+    
+    let captionText = json.caption || '';
+    if(json.headline) captionText = `<b>${json.headline}</b>\n\n${captionText}`;
+    if(json.cta) captionText += `\n\n${json.cta}`;
+    
+    document.getElementById('captionDisplay').innerHTML = captionText;
+    
+    if(json.hashtags && Array.isArray(json.hashtags)) {
+        document.getElementById('hashtagsDisplay').innerText = json.hashtags.map(h => h.startsWith('#') ? h : `#${h}`).join(' ');
+    } else {
+        document.getElementById('hashtagsDisplay').innerText = '';
+    }
+}
+
+function loadHistoryItem(platform, contentJson) {
+    updatePreview(platform, contentJson);
+    document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function generateSocialPost(event) {
+    event.preventDefault();
+    const form = event.target;
+    const btn = document.getElementById('genSocialBtn');
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+    btn.disabled = true;
+    
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('outputArea').style.display = 'none';
+    document.getElementById('outputLoading').style.display = 'block';
+
+    const formData = new FormData(form);
+    const kwargs = {};
+    formData.forEach((value, key) => {
+        if(key !== 'csrfmiddlewaretoken' && key !== 'platform') kwargs[key] = value;
+    });
+
+    try {
+        const response = await fetch("{% url 'branding:social_studio' project.pk %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: JSON.stringify({ 
+                action: 'generate',
+                platform: formData.get('platform'),
+                kwargs: kwargs
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            updatePreview(formData.get('platform'), data.content_json);
+            document.getElementById('outputLoading').style.display = 'none';
+            document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert(data.error || 'Something went wrong while generating.');
+            document.getElementById('outputLoading').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+    } catch (err) {
+        alert('Network error while generating.');
+        console.error(err);
+        document.getElementById('outputLoading').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function copyCaption() {
+    const caption = document.getElementById('captionDisplay').innerText;
+    const hashtags = document.getElementById('hashtagsDisplay').innerText;
+    navigator.clipboard.writeText(`${caption}\n\n${hashtags}`).then(() => {
+        alert('Post copied to clipboard!');
+    });
+}
+
+function generateVisual() {
+    // Send to creative studio with prompt prefilled
+    // We would typically append the prompt to the URL or store in session
+    window.location.href = "{% url 'branding:creative_studio' project.pk %}";
+}
+</script>
+{% endblock %}

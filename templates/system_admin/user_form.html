@@ -1,0 +1,187 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Add New User | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.form-container {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 1);
+    border-left: 1px solid rgba(255, 255, 255, 1);
+    padding: 40px;
+    max-width: 600px;
+    box-shadow: 
+        10px 10px 30px rgba(23, 52, 79, 0.04),
+        -10px -10px 30px rgba(255, 255, 255, 0.9),
+        inset 2px 2px 5px rgba(255, 255, 255, 1);
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--admin-text-main);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.form-input {
+    width: 100%;
+    background: var(--admin-bg);
+    border-radius: 16px;
+    padding: 14px 20px;
+    box-shadow: inset 6px 6px 12px #e5e3dd, inset -6px -6px 12px #ffffff;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: var(--admin-text-main);
+    transition: all 0.3s ease;
+}
+.form-input:focus {
+    box-shadow: inset 8px 8px 16px #dfddd8, inset -8px -8px 16px #ffffff, 0 0 0 2px rgba(198, 139, 60, 0.3);
+}
+
+.form-select {
+    width: 100%;
+    background: var(--admin-bg);
+    border-radius: 16px;
+    padding: 14px 20px;
+    box-shadow: inset 6px 6px 12px #e5e3dd, inset -6px -6px 12px #ffffff;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: var(--admin-text-main);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+.form-select:focus {
+    box-shadow: inset 8px 8px 16px #dfddd8, inset -8px -8px 16px #ffffff, 0 0 0 2px rgba(198, 139, 60, 0.3);
+}
+
+.btn-3d-submit {
+    background: linear-gradient(145deg, #1f4263, #152d43);
+    color: white;
+    padding: 14px 32px;
+    border-radius: 16px;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow:  6px 6px 12px rgba(23, 52, 79, 0.2),
+                 -6px -6px 12px rgba(255, 255, 255, 0.8),
+                 inset 2px 2px 5px rgba(255,255,255,0.1);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+}
+.btn-3d-submit:active {
+    box-shadow: inset 4px 4px 8px rgba(10, 25, 40, 0.4),
+                inset -4px -4px 8px rgba(40, 80, 115, 0.5);
+    transform: translateY(2px);
+}
+
+.alert {
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+.alert-error {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Add New User</h1>
+        <p>Create a new account and assign permissions.</p>
+    </div>
+    <a href="{% url 'system_admin:user_list' %}" style="text-decoration: none;">
+        <button class="btn-3d-primary" style="background: rgba(255,255,255,0.6); backdrop-filter: blur(16px); color: var(--admin-accent); padding: 12px 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.9); box-shadow: 6px 6px 18px rgba(0,0,0,0.05), -6px -6px 18px rgba(255,255,255,0.9); cursor: pointer; font-weight: 600;">
+            <i class="fas fa-arrow-left"></i> Back to Users
+        </button>
+    </a>
+</div>
+
+<div class="form-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" class="form-input" required placeholder="Enter a unique username">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" class="form-input" required placeholder="user@brandcraft.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Temporary Password</label>
+            <input type="password" id="password" name="password" class="form-input" required placeholder="Create a secure password">
+        </div>
+        
+        <div class="form-group">
+            <label for="role">Assign Role</label>
+            <div style="position: relative;">
+                <select id="role" name="role" class="form-select" required>
+                    <option value="user">Regular User</option>
+                    <option value="staff">Staff Member</option>
+                    <option value="superadmin">Super Admin</option>
+                </select>
+                <i class="fas fa-chevron-down" style="position: absolute; right: 20px; top: 16px; color: var(--admin-text-muted); pointer-events: none;"></i>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn-3d-submit">
+            <i class="fas fa-user-plus"></i> Create User Account
+        </button>
+    </form>
+</div>
+{% endblock %}

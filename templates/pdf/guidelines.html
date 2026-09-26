@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @frame footer {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .cover {
+            text-align: center;
+            padding-top: 150px;
+        }
+        .cover-title {
+            font-size: 36pt;
+            color: #17344F;
+            margin-bottom: 20px;
+        }
+        .cover-subtitle {
+            font-size: 18pt;
+            color: #C68B3C;
+            margin-bottom: 50px;
+        }
+        .page-break {
+            pdf-pagebreak-before: always;
+        }
+        h1 {
+            color: #17344F;
+            font-size: 24pt;
+            border-bottom: 1px solid #C8BEAF;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+        }
+        h2 {
+            color: #17344F;
+            font-size: 16pt;
+            margin-top: 30px;
+        }
+        p {
+            font-size: 11pt;
+            margin-bottom: 15px;
+        }
+        .guidance-box {
+            border-left: 4px solid #8FA99B;
+            background-color: #F7F3EC;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="footerContent" style="text-align: center; color: #999; font-size: 9pt;">
+        BrandCraft | {{ data.overview.name }} Guidelines | <pdf:pagenumber>
+    </div>
+
+    <!-- COVER -->
+    <div class="cover">
+        <div class="cover-subtitle">BRANDCRAFT</div>
+        <div class="cover-title">{{ data.overview.name|upper }}</div>
+        <div class="cover-subtitle" style="color: #666; font-size: 14pt;">BRAND GUIDELINES</div>
+        <div style="margin-top: 50px; font-size: 12pt; color: #999;">
+            Version {{ report.version }} | Generated {{ report.created_at|date:"F j, Y" }}
+        </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- INTRODUCTION -->
+    <h1>Brand Introduction</h1>
+    <p>{{ data.guidance.introduction }}</p>
+
+    <!-- VOICE GUIDANCE -->
+    <h1>Brand Voice</h1>
+    <h2>Core Principles</h2>
+    <ul>
+        {% for principle in data.guidance.voice_guidance.principles %}
+        <li>{{ principle }}</li>
+        {% endfor %}
+    </ul>
+
+    <div class="guidance-box">
+        <h3>DO</h3>
+        <ul>
+            {% for do in data.guidance.voice_guidance.do %}
+            <li>{{ do }}</li>
+            {% endfor %}
+        </ul>
+        
+        <h3 style="color: #E74C3C;">DON'T</h3>
+        <ul>
+            {% for dont in data.guidance.voice_guidance.dont %}
+            <li>{{ dont }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- MESSAGING -->
+    <h1>Messaging Principles</h1>
+    <ul>
+        {% for principle in data.guidance.messaging_principles %}
+        <li style="margin-bottom: 10px;">{{ principle }}</li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>

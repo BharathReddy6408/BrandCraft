@@ -1,0 +1,170 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Name & Slogan Studio | {{ project.business_name }}{% endblock %}
+
+{% block menu_names %}active{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4" style="border-radius: 24px; background: #FFF;">
+    <h2 class="fw-bold mb-2" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Name & Slogan Studio</h2>
+    <p class="text-muted mb-4">Generate and finalize your brand's core identity markers.</p>
+
+    <ul class="nav nav-pills mb-4 border-bottom pb-3" id="studioTabs" role="tablist" style="gap:8px;">
+        <li class="nav-item">
+            <button class="nav-link active btn btn-light-pill px-4" id="names-tab" data-bs-toggle="pill" data-bs-target="#names" type="button" role="tab">Business Names</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" id="slogans-tab" data-bs-toggle="pill" data-bs-target="#slogans" type="button" role="tab">Brand Slogans</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="studioTabsContent">
+        <!-- Names Studio -->
+        <div class="tab-pane fade show active" id="names" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="p-4" style="background:var(--color-bg-main); border-radius:16px;">
+                        <h5 class="fw-bold mb-3" style="color:var(--color-navy-deep);">Naming Agent Controls</h5>
+                        <form method="POST" action="{% url 'branding:name_slogan_studio' project.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="generate_names">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Naming Style</label>
+                                <select name="style" class="form-select" style="border-radius:10px;">
+                                    <option value="Modern">Modern & Techy</option>
+                                    <option value="Premium">Premium & Luxury</option>
+                                    <option value="Friendly">Friendly & Playful</option>
+                                    <option value="Bold">Bold & Edgy</option>
+                                    <option value="Minimal">Minimal & Short</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Number of Suggestions</label>
+                                <select name="count" class="form-select" style="border-radius:10px;">
+                                    <option value="3">3</option>
+                                    <option value="5" selected>5</option>
+                                    <option value="8">8</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold">Optional Keyword</label>
+                                <input type="text" name="keyword" class="form-control" placeholder="e.g. Eco, Tech, Flow" style="border-radius:10px;">
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2">Generate Names &rarr;</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Generated Names</h5>
+                    </div>
+                    {% if name_assets %}
+                        <div class="row g-3">
+                            {% for asset in name_assets %}
+                                {% if asset.content_json.names %}
+                                    {% for name in asset.content_json.names %}
+                                        <div class="col-sm-6">
+                                            <div class="card p-3 border h-100 shadow-sm" style="border-radius: 12px; {% if project.business_name == name %}border-color: var(--color-gold-primary) !important; background-color: rgba(198, 139, 60, 0.05);{% endif %}">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="fs-5 fw-bold" style="color:var(--color-navy-deep);">{{ name }}</div>
+                                                    {% if project.business_name == name %}
+                                                        <span class="badge" style="background:var(--color-gold-primary); color:#fff;">Selected</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="mt-3 text-end">
+                                                    {% if project.business_name != name %}
+                                                    <form method="POST" action="{% url 'branding:name_slogan_studio' project.pk %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="select_name">
+                                                        <input type="hidden" name="selected_name" value="{{ name }}">
+                                                        <button type="submit" class="btn btn-sm btn-outline-dark" style="border-radius: 20px;">Select</button>
+                                                    </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center p-5 border" style="border-radius: 16px; border-style: dashed !important; color: #aaa;">
+                            <p class="mb-0">No names generated yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Slogans Studio -->
+        <div class="tab-pane fade" id="slogans" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="p-4" style="background:var(--color-bg-main); border-radius:16px;">
+                        <h5 class="fw-bold mb-3" style="color:var(--color-navy-deep);">Copywriting Agent Controls</h5>
+                        <form method="POST" action="{% url 'branding:name_slogan_studio' project.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="generate_slogans">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Slogan Tone</label>
+                                <select name="tone" class="form-select" style="border-radius:10px;">
+                                    <option value="Professional">Professional</option>
+                                    <option value="Bold">Bold & Direct</option>
+                                    <option value="Friendly">Friendly & Welcoming</option>
+                                    <option value="Premium">Premium & Exclusive</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold">Slogan Length</label>
+                                <select name="length" class="form-select" style="border-radius:10px;">
+                                    <option value="Short">Short (2-4 words)</option>
+                                    <option value="Medium">Medium (5-8 words)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2">Generate Slogans &rarr;</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Generated Slogans</h5>
+                    </div>
+                    {% if slogan_assets %}
+                        <div class="d-flex flex-column gap-3">
+                            {% for asset in slogan_assets %}
+                                {% if asset.content_json.slogans %}
+                                    {% for slogan in asset.content_json.slogans %}
+                                        <div class="card p-3 border shadow-sm" style="border-radius: 12px; {% if asset.is_selected and forloop.first %}border-color: var(--color-gold-primary) !important; background-color: rgba(198, 139, 60, 0.05);{% endif %}">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="fs-6 fw-bold" style="color:var(--color-navy-deep);">"{{ slogan }}"</div>
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    {% if asset.is_selected and forloop.first %}
+                                                        <span class="badge" style="background:var(--color-gold-primary); color:#fff;">Selected</span>
+                                                    {% else %}
+                                                        <form method="POST" action="{% url 'branding:name_slogan_studio' project.pk %}">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="select_slogan">
+                                                            <input type="hidden" name="slogan_text" value="{{ slogan }}">
+                                                            <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                                                            <button type="submit" class="btn btn-sm btn-outline-dark" style="border-radius: 20px;">Select</button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center p-5 border" style="border-radius: 16px; border-style: dashed !important; color: #aaa;">
+                            <p class="mb-0">No slogans generated yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

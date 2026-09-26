@@ -1,0 +1,292 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}AI Generation Center | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.filters-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+.filter-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    color: var(--admin-text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.filter-btn:hover, .filter-btn.active {
+    background: var(--admin-accent);
+    color: white;
+    border-color: var(--admin-accent);
+}
+
+.review-queue {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.queue-item {
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.queue-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+.item-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--admin-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--admin-accent);
+}
+.item-details h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    color: var(--admin-accent);
+}
+.item-details p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--admin-text-muted);
+}
+.item-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+.status-completed { background: #dcfce7; color: #16a34a; }
+.status-pending { background: #fef3c7; color: #d97706; }
+.status-failed { background: #fee2e2; color: #dc2626; }
+
+.item-actions {
+    display: flex;
+    gap: 12px;
+}
+.btn-action {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    background: white;
+    color: var(--admin-text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-action:hover {
+    background: var(--admin-hover);
+}
+.btn-approve {
+    background: var(--admin-accent);
+    color: white;
+    border: none;
+}
+.btn-approve:hover {
+    background: var(--color-navy-deep);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px;
+    color: var(--admin-text-muted);
+}
+
+/* Modal CSS */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+.modal-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    width: 600px;
+    max-width: 90%;
+}
+.modal-glass h2 {
+    margin-top: 0;
+    color: var(--admin-accent);
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>AI Generation Center</h1>
+        <p>Review and monitor all AI asset generation tasks.</p>
+    </div>
+</div>
+
+<div class="filters-bar">
+    <button class="filter-btn active" data-filter="all" onclick="filterGenerations('all', this)">All Generations</button>
+    <button class="filter-btn" data-filter="PENDING" onclick="filterGenerations('PENDING', this)">Pending Review</button>
+    <button class="filter-btn" data-filter="APPROVED" onclick="filterGenerations('APPROVED', this)">Approved</button>
+    <button class="filter-btn" data-filter="REJECTED" onclick="filterGenerations('REJECTED', this)">Rejected / Failed</button>
+</div>
+
+<div class="review-queue">
+    {% for gen in generations %}
+    <div class="queue-item card-glass" data-status="{{ gen.status }}">
+        <div class="item-info">
+            <div class="item-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="item-details">
+                <h4>{{ gen.asset_type|title }} Generation</h4>
+                <p>Project: {{ gen.project.business_name|default:"Unknown Project" }}</p>
+                <div class="item-meta">
+                    <span class="status-badge status-{{ gen.status|lower }}">{{ gen.status }}</span>
+                    <span><i class="far fa-clock"></i> {{ gen.created_at|timesince }} ago</span>
+                    <span><i class="far fa-user"></i> {{ gen.project.user.username }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="item-actions">
+            <script id="gen-data-{{ gen.id }}" type="application/json">{{ gen.content|safe }}</script>
+            <button class="btn-action" onclick="viewGeneration('{{ gen.id }}', '{{ gen.get_asset_type_display|escapejs }}')"><i class="fas fa-eye"></i> View</button>
+            {% if gen.status != 'APPROVED' %}
+            <form action="{% url 'system_admin:approve_generation' gen.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-action btn-approve"><i class="fas fa-check"></i> Approve</button>
+            </form>
+            {% endif %}
+            {% if gen.status != 'REJECTED' %}
+            <form action="{% url 'system_admin:reject_generation' gen.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-action" style="color:#dc2626;" onclick="return confirm('Are you sure you want to reject this generation?');"><i class="fas fa-times"></i> Reject</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-inbox" style="font-size: 3rem; color:#cbd5e1; margin-bottom:16px;"></i>
+        <h3>Queue is Empty</h3>
+        <p>No AI generations have been processed yet.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- View Modal -->
+<div class="modal-overlay" id="viewGenerationModal">
+    <div class="modal-glass">
+        <h2 id="modalTitle">View Generation</h2>
+        <pre id="modalContent" style="background: rgba(255,255,255,0.5); padding: 16px; border-radius: 8px; border: 1px solid rgba(23,52,79,0.2); overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 0.9rem; color: var(--admin-text-main); max-height: 400px; overflow-y: auto;"></pre>
+        <div class="modal-actions">
+            <button class="btn-3d-glass" onclick="closeViewModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterGenerations(status, btnElement) {
+    // Update active tab styling
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    if (btnElement) {
+        btnElement.classList.add('active');
+    }
+    
+    // Filter the items
+    document.querySelectorAll('.queue-item').forEach(item => {
+        if (status === 'all' || item.getAttribute('data-status') === status) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function viewGeneration(id, title) {
+    const dataElement = document.getElementById('gen-data-' + id);
+    let content = "No data available.";
+    if (dataElement) {
+        try {
+            content = JSON.stringify(JSON.parse(dataElement.textContent), null, 2);
+        } catch (e) {
+            content = dataElement.textContent;
+        }
+    }
+    document.getElementById('modalTitle').textContent = title + ' Generation';
+    document.getElementById('modalContent').textContent = content;
+    const modal = document.getElementById('viewGenerationModal');
+    modal.style.display = 'flex';
+    modal.style.opacity = '1';
+}
+
+function closeViewModal() {
+    const modal = document.getElementById('viewGenerationModal');
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.display = 'none'; }, 300);
+}
+</script>
+{% endblock %}

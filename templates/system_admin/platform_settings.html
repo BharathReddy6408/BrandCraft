@@ -1,0 +1,218 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Platform Settings | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.settings-layout {
+    display: flex;
+    gap: 30px;
+}
+
+.settings-sidebar {
+    width: 250px;
+    padding: 20px 0;
+    align-self: flex-start;
+}
+.settings-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.settings-nav li {
+    padding: 12px 24px;
+    cursor: pointer;
+    color: var(--admin-text-muted);
+    font-weight: 600;
+    border-left: 4px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.settings-nav li:hover {
+    background: rgba(0,0,0,0.03);
+    color: var(--admin-accent);
+}
+.settings-nav li.active {
+    background: rgba(198, 139, 60, 0.1);
+    color: var(--color-gold-primary);
+    border-left-color: var(--color-gold-primary);
+}
+
+.settings-content {
+    flex: 1;
+    padding: 30px;
+}
+.settings-section h2 {
+    font-size: 1.4rem;
+    color: var(--admin-accent);
+    margin: 0 0 24px 0;
+    border-bottom: 1px solid var(--admin-border);
+    padding-bottom: 12px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--admin-text-main);
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+.form-group input[type="text"], 
+.form-group input[type="email"], 
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--admin-border);
+    background: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    font-size: 0.95rem;
+}
+.form-group input:focus, .form-group select:focus {
+    border-color: var(--color-gold-primary);
+    box-shadow: 0 0 0 3px rgba(198, 139, 60, 0.1);
+}
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 28px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: var(--color-gold-primary);
+}
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+.toggle-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--admin-text-main);
+}
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Platform Settings</h1>
+        <p>Configure global platform behavior and integrations.</p>
+    </div>
+</div>
+
+<div class="settings-layout">
+    <div class="settings-sidebar card-glass">
+        <ul class="settings-nav">
+            <li class="active"><i class="fas fa-sliders-h"></i> General Settings</li>
+        </ul>
+    </div>
+    
+    <div class="settings-content card-glass">
+        <div class="settings-section">
+            <h2>General Settings</h2>
+            
+            <form action="{% url 'system_admin:save_settings' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Platform Name</label>
+                    <input type="text" name="platform_name" value="BrandCraft Automation System">
+                </div>
+                
+                <div class="form-group">
+                    <label>Support Contact Email</label>
+                    <input type="email" name="support_email" value="support@brandcraft.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Default Timezone</label>
+                    <select name="timezone">
+                        <option>UTC (Coordinated Universal Time)</option>
+                        <option selected>America/New_York (EST)</option>
+                        <option>Europe/London (GMT)</option>
+                        <option>Asia/Kolkata (IST)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <div class="toggle-switch">
+                        <label class="switch">
+                            <input type="checkbox" name="enable_registration" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">Enable User Registration</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin: 4px 0 0 62px;">Allow new users to sign up from the landing page.</p>
+                </div>
+                
+                <div class="form-group">
+                    <div class="toggle-switch">
+                        <label class="switch">
+                            <input type="checkbox" name="maintenance_mode">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">Maintenance Mode</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin: 4px 0 0 62px;">Only Admins can log in when this is active.</p>
+                </div>
+                
+                <div style="margin-top: 40px; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-3d-glass">Save Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Security Center | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.security-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 30px;
+}
+
+.log-container {
+    padding: 24px;
+}
+
+.log-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.log-filters input, .log-filters select {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    background: rgba(255, 255, 255, 0.5);
+    outline: none;
+    font-size: 0.9rem;
+}
+
+/* Dense Log Table */
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+}
+.log-table th {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--admin-border);
+    color: var(--admin-text-muted);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+}
+.log-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(23, 52, 79, 0.05);
+    color: var(--admin-text-main);
+    vertical-align: top;
+}
+.log-table tr:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.log-action {
+    font-weight: 600;
+    color: #4f46e5;
+}
+.log-action.delete { color: #dc2626; }
+.log-action.login { color: #16a34a; }
+
+.log-details {
+    font-size: 0.75rem;
+    color: var(--admin-text-muted);
+    margin-top: 4px;
+    word-break: break-all;
+}
+
+.alerts-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.alert-card {
+    background: rgba(254, 226, 226, 0.8);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    border: 1px solid #fca5a5;
+    padding: 20px;
+}
+.alert-card.warning {
+    background: rgba(254, 243, 199, 0.8);
+    border-color: #fcd34d;
+}
+.alert-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.alert-card.warning .alert-header { color: #b45309; }
+.alert-card .alert-header { color: #991b1b; }
+
+.alert-desc {
+    font-size: 0.85rem;
+    margin: 0;
+    color: var(--admin-text-main);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Security Center</h1>
+        <p>Monitor system events, audit trails, and security alerts.</p>
+    </div>
+</div>
+
+<div class="security-layout">
+    <div class="log-container card-glass">
+        <div class="log-filters">
+            <input type="text" placeholder="Search logs..." style="flex:1;">
+            <select>
+                <option value="">All Actions</option>
+                <option value="LOGIN">Logins</option>
+                <option value="DELETE">Deletions</option>
+                <option value="AI_GENERATE">AI Generations</option>
+            </select>
+        </div>
+        
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User / IP</th>
+                    <th>Action</th>
+                    <th>Target / Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="white-space: nowrap; color: var(--admin-text-muted);">{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td>
+                        <strong>{{ log.user.username|default:"System" }}</strong><br>
+                        <span style="font-size:0.75rem;">{{ log.ip_address|default:"127.0.0.1" }}</span>
+                    </td>
+                    <td>
+                        <span class="log-action {% if log.action == 'DELETE' %}delete{% elif log.action == 'LOGIN' %}login{% endif %}">
+                            {{ log.get_action_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {{ log.target }}
+                        {% if log.details %}
+                        <div class="log-details">{{ log.details }}</div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align:center; padding: 40px; font-family:'Inter', sans-serif;">
+                        <i class="fas fa-shield-alt" style="font-size:2rem; color:#cbd5e1; margin-bottom:12px;"></i>
+                        <p style="color:var(--admin-text-muted);">No audit logs recorded yet.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="alerts-panel">
+        <div class="alert-card warning">
+            <div class="alert-header">
+                <i class="fas fa-exclamation-triangle"></i> Multiple Failed Logins
+            </div>
+            <p class="alert-desc">5 failed login attempts detected from IP 192.168.1.45 in the last hour.</p>
+        </div>
+        
+        <div class="alert-card">
+            <div class="alert-header">
+                <i class="fas fa-shield-alt"></i> API Key Exposed
+            </div>
+            <p class="alert-desc">System detected a potential API key exposure in user prompt data (Project ID: 44).</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

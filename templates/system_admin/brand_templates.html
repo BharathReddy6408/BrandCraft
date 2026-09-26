@@ -1,0 +1,319 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Brand Templates | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.filters-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+.filter-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    color: var(--admin-text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.filter-btn:hover, .filter-btn.active {
+    background: var(--admin-accent);
+    color: white;
+    border-color: var(--admin-accent);
+}
+
+.templates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.template-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.template-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+}
+
+.template-thumb {
+    height: 180px;
+    background: #e2e8f0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.template-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.template-thumb .no-thumb {
+    font-size: 3rem;
+    color: #94a3b8;
+}
+
+.template-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+}
+
+.template-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.template-body h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: var(--admin-accent);
+}
+
+.template-body p {
+    color: var(--admin-text-muted);
+    font-size: 0.85rem;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+    flex: 1;
+}
+
+.template-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--admin-border);
+}
+
+.template-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--admin-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Brand Templates</h1>
+        <p>Manage and organize standard templates used across projects.</p>
+    </div>
+    <button class="btn-3d-glass" onclick="openModal('addTemplateModal')">
+        <i class="fas fa-plus"></i> Add Template
+    </button>
+</div>
+
+<div class="filters-bar">
+    <button class="filter-btn active" data-filter="all" onclick="filterTemplates('all', this)">All Templates</button>
+    {% for cat in categories %}
+    <button class="filter-btn" data-filter="{{ cat.id }}" onclick="filterTemplates('{{ cat.id }}', this)">{{ cat.name }}</button>
+    {% endfor %}
+</div>
+
+<div class="templates-grid" id="templatesGrid">
+    {% for template in templates %}
+    <div class="template-card card-glass" data-category="{{ template.category.id|default:'none' }}">
+        <div class="template-thumb">
+            {% if template.thumbnail %}
+                <img src="{{ template.thumbnail.url }}" alt="{{ template.title }}">
+            {% else %}
+                <i class="fas fa-layer-group no-thumb"></i>
+            {% endif %}
+            {% if template.category %}
+                <span class="template-badge">{{ template.category.name }}</span>
+            {% endif %}
+        </div>
+        <div class="template-body">
+            <h3>{{ template.title }}</h3>
+            <p>{{ template.description|default:"No description provided."|truncatewords:15 }}</p>
+            
+            <div class="template-footer">
+                <div style="font-size: 0.8rem; color: #94a3b8;">
+                    <i class="far fa-clock"></i> {{ template.updated_at|date:"M d, Y" }}
+                </div>
+                <div class="template-actions">
+                    <button class="action-btn" onclick="openEditModal({{ template.id }}, '{{ template.title|escapejs }}', '{{ template.category_id|default:'' }}', '{{ template.description|escapejs }}')" title="Edit Template"><i class="fas fa-edit"></i></button>
+                    {% if template.file %}
+                    <a href="{{ template.file.url }}" download class="action-btn" title="Download File"><i class="fas fa-download"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <i class="fas fa-folder-open" style="font-size: 3rem; color:#cbd5e1; margin-bottom:16px;"></i>
+        <h3>No templates found</h3>
+        <p>You haven't uploaded any brand templates yet.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Placeholder Modal for Adding Templates -->
+<div class="modal-overlay" id="addTemplateModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Add New Template</h2>
+            <button class="btn-close" onclick="closeModal('addTemplateModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="{% url 'system_admin:add_brand_template' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Title</label>
+                    <input type="text" name="title" required class="custom-select" placeholder="e.g. Minimalist Business Card">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Category</label>
+                    <select name="category_id" class="custom-select">
+                        <option value="">-- No Category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description</label>
+                    <textarea name="description" class="custom-select" rows="3" placeholder="Brief description of this template..."></textarea>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Thumbnail Image (Optional)</label>
+                    <input type="file" name="thumbnail" accept="image/*" class="custom-select" style="padding: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Template File</label>
+                    <input type="file" name="file" class="custom-select" style="padding: 8px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="closeModal('addTemplateModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass"><i class="fas fa-save"></i> Save Template</button>
+            </div>
+        </form>
+<!-- Edit Template Modal -->
+<div class="modal-overlay" id="editTemplateModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Edit Template</h2>
+            <button class="btn-close" onclick="closeModal('editTemplateModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="editTemplateForm" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Title</label>
+                    <input type="text" id="edit-title" name="title" required class="custom-select">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Category</label>
+                    <select id="edit-category" name="category_id" class="custom-select">
+                        <option value="">-- No Category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description</label>
+                    <textarea id="edit-description" name="description" class="custom-select" rows="3"></textarea>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Update Thumbnail (Optional)</label>
+                    <input type="file" name="thumbnail" accept="image/*" class="custom-select" style="padding: 8px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Update Template File (Optional)</label>
+                    <input type="file" name="file" class="custom-select" style="padding: 8px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="closeModal('editTemplateModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterTemplates(categoryId, btnElement) {
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    if (btnElement) {
+        btnElement.classList.add('active');
+    }
+    
+    document.querySelectorAll('.template-card').forEach(card => {
+        if (categoryId === 'all' || card.getAttribute('data-category') === categoryId) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function openEditModal(id, title, categoryId, description) {
+    document.getElementById('edit-title').value = title;
+    document.getElementById('edit-category').value = categoryId;
+    document.getElementById('edit-description').value = description;
+    document.getElementById('editTemplateForm').action = "/portal/brand-templates/" + id + "/edit/";
+    openModal('editTemplateModal');
+}
+</script>
+{% endblock %}

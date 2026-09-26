@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page { size: A4; margin: 2cm; @frame footer { -pdf-frame-content: footerContent; bottom: 1cm; margin-left: 2cm; margin-right: 2cm; height: 1cm; } }
+        body { font-family: Helvetica, Arial, sans-serif; color: #333333; line-height: 1.6; }
+        .cover { text-align: center; padding-top: 150px; }
+        .cover-title { font-size: 36pt; color: #17344F; margin-bottom: 20px; }
+        .cover-subtitle { font-size: 18pt; color: #C68B3C; margin-bottom: 50px; }
+        .page-break { pdf-pagebreak-before: always; }
+        h1 { color: #17344F; font-size: 24pt; border-bottom: 1px solid #C8BEAF; padding-bottom: 10px; margin-bottom: 20px; margin-top: 40px; }
+        h2 { color: #17344F; font-size: 16pt; margin-top: 30px; }
+        p { font-size: 11pt; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div id="footerContent" style="text-align: center; color: #999; font-size: 9pt;">
+        BrandCraft | {{ report.project.business_name }} Audit Report | <pdf:pagenumber>
+    </div>
+    <div class="cover">
+        <div class="cover-subtitle">BRANDCRAFT</div>
+        <div class="cover-title">{{ report.project.business_name|upper }}</div>
+        <div class="cover-subtitle" style="color: #666; font-size: 14pt;">BRAND AUDIT REPORT</div>
+        <div style="margin-top: 50px; font-size: 12pt; color: #999;">Version {{ report.version }} | Generated {{ report.created_at|date:"F j, Y" }}</div>
+    </div>
+    <div class="page-break"></div>
+    <h1>Brand Intelligence</h1>
+    {% if data %}
+    <p style="font-style: italic; color: #666; margin-bottom: 30px;">{{ data.ai_narrative }}</p>
+    <p><strong>Overall Health Score:</strong> {{ data.overall_score }}%</p>
+    <p><strong>Consistency Score:</strong> {{ data.consistency_score }}%</p>
+    <h2>Audit Summary</h2>
+    <p>{{ data.summary }}</p>
+    <h2>Strengths</h2>
+    <ul>{% for item in data.strengths %}<li>{{ item }}</li>{% endfor %}</ul>
+    <h2>Opportunities</h2>
+    <ul>{% for item in data.opportunities %}<li>{{ item }}</li>{% endfor %}</ul>
+    {% else %}
+    <p>No recent audit available.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,668 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Workspace | BrandCraft{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- Base Design System -->
+    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+
+    <style>
+        body {
+            background: var(--color-bg-main);
+            min-height: 100vh;
+            display: flex;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* SIDEBAR (On the Right as a Floating Card) */
+        .workspace-sidebar {
+            width: 280px;
+            background: #FFFFFF;
+            border: 1px solid rgba(200,190,175,0.2) !important;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 96px;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            height: calc(100vh - 120px);
+        }
+        .sidebar-brand {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(200,190,175,0.2);
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--color-navy-deep);
+            text-decoration: none;
+        }
+        .sidebar-brand span {
+            color: var(--color-gold-primary);
+        }
+        .sidebar-nav {
+            padding: 24px 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+        }
+        .nav-section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 16px;
+            margin-top: 12px;
+        }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--color-navy-sec);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .sidebar-link:hover {
+            background: var(--color-bg-section);
+            color: var(--color-gold-primary);
+        }
+        .sidebar-link.active {
+            background: rgba(216,174,104,0.12);
+            color: var(--color-gold-primary);
+            font-weight: 600;
+        }
+        .sidebar-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* MAIN CONTENT WRAPPER */
+        .workspace-main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* TOP HEADER */
+        .workspace-topbar {
+            height: 72px;
+            background: #FFFFFF;
+            border-bottom: 1px solid rgba(200,190,175,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .breadcrumb-custom {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            color: var(--color-text-muted);
+        }
+        .breadcrumb-custom a {
+            color: var(--color-navy-sec);
+            text-decoration: none;
+        }
+        .breadcrumb-custom a:hover {
+            color: var(--color-gold-primary);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* CONTENT CONTAINER */
+        .workspace-content {
+            padding: 40px;
+            margin-right: 328px; /* Space for floating right sidebar below topbar */
+            flex-grow: 1;
+        }
+
+        /* FLOATING CHAT */
+        /* FLOATING CHAT - PREMIUM BENTO GLASSMORPHISM */
+        .chat-trigger {
+            position: fixed;
+            bottom: 32px;
+            left: 32px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #24545A, #4F7F7B); /* Deep Teal to Muted Teal */
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(36,84,90,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .chat-trigger:hover {
+            transform: scale(1.05) rotate(5deg);
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 104px;
+            left: 32px;
+            width: 480px;
+            height: 70vh;
+            max-height: 750px;
+            min-height: 500px;
+            background: rgba(247, 241, 232, 0.95); /* Warm Cream Glass */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 28px;
+            border: 1px solid rgba(200,190,175,0.4);
+            box-shadow: 0 25px 60px rgba(36,84,90,0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 999;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-header {
+            background: #24545A; /* Deep Teal */
+            color: #fff;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h6 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .chat-msg {
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 85%;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+        .chat-msg.assistant {
+            background: #FFFFFF;
+            color: #172B3A; /* Deep Navy */
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            border: 1px solid rgba(200,190,175,0.3);
+        }
+        .chat-msg.user {
+            background: #C89B52; /* Muted Gold */
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+        .chat-footer {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(200,190,175,0.2);
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Custom Toast CSS */
+        .custom-toast {
+            position: fixed;
+            bottom: 32px;
+            left: 104px; /* Placed next to the chat bubble trigger */
+            background: var(--color-navy-deep);
+            color: #fff;
+            padding: 16px 28px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Search Modal Overlay Styles */
+        .search-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(23, 52, 79, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+        }
+        .search-modal-card {
+            width: 100%;
+            max-width: 650px;
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 1px solid rgba(200,190,175,0.3);
+            box-shadow: 0 25px 60px rgba(23,52,79,0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        .search-modal-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(200,190,175,0.2);
+            padding: 16px 24px;
+            position: relative;
+        }
+        .search-modal-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 1.1rem;
+            color: var(--color-navy-deep);
+            background: transparent;
+        }
+        .close-search-btn {
+            font-size: 1.5rem;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+        .search-modal-results {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .search-result-item:hover {
+            background: rgba(216,174,104,0.08);
+        }
+        .result-icon {
+            font-size: 1.5rem;
+            background: rgba(23,52,79,0.05);
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .result-title {
+            font-weight: 600;
+            color: var(--color-navy-deep);
+            font-size: 0.95rem;
+        }
+        .result-subtitle {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+        }
+
+        /* Typing message indicators */
+        .chat-msg.assistant.typing {
+            font-style: italic;
+            color: var(--color-text-muted);
+            background: rgba(200,190,175,0.08);
+            border: 1px dashed rgba(200,190,175,0.3);
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+        }
+        
+        /* Copilot Cards */
+        .copilot-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .dots span {
+            animation: blink 1.4s infinite both;
+            font-size: 1.5rem;
+            line-height: 0.5;
+            display: inline-block;
+            margin: 0 1px;
+        }
+        .dots span:nth-child(2) { animation-delay: .2s; }
+        .dots span:nth-child(3) { animation-delay: .4s; }
+        @keyframes blink {
+            0% { opacity: .2; }
+            20% { opacity: 1; }
+            100% { opacity: .2; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- WORKSPACE SIDEBAR -->
+    <aside class="workspace-sidebar">
+        <a href="{% url 'dashboard:home' %}" class="sidebar-brand">Brand<span>Craft</span></a>
+        
+        <div style="padding: 0 24px 16px 24px; font-size: 0.9rem; color: var(--color-text-muted);" class="d-flex align-items-center gap-2 flex-nowrap">
+            <a href="{% url 'dashboard:home' %}" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px; flex-shrink: 0;">
+                <span style="color:#E8B971; font-size: 1.1rem;">📁</span> 
+                Workspace
+            </a>
+            <span style="flex-shrink: 0;">&rarr;</span> <strong class="text-truncate" title="{{ project.business_name }}">{{ project.business_name }}</strong>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">1. Core Strategy</div>
+            <a href="{% url 'branding:project_detail' project.pk %}" class="sidebar-link {% block menu_overview %}{% endblock %}">
+                <span class="sidebar-icon">📊</span> Project Overview
+            </a>
+            <a href="{% url 'branding:results' project.pk %}" class="sidebar-link {% block menu_style %}{% endblock %}">
+                <span class="sidebar-icon">✨</span> Select Brand Style
+            </a>
+            <a href="{% url 'branding:brand_identity' project.pk %}" class="sidebar-link {% block menu_identity %}{% endblock %}">
+                <span class="sidebar-icon">🏷️</span> Brand Identity
+            </a>
+
+            <div class="nav-section-label">2. Creative Studios</div>
+            <a href="{% url 'branding:name_slogan_studio' project.pk %}" class="sidebar-link {% block menu_naming %}{% endblock %}">
+                <span class="sidebar-icon">💡</span> Naming & Slogan
+            </a>
+            <a href="{% url 'branding:logo_studio' project.pk %}" class="sidebar-link {% block menu_logos %}{% endblock %}">
+                <span class="sidebar-icon">🎨</span> Logo Studio
+            </a>
+            <a href="{% url 'branding:creative_studio' project.pk %}" class="sidebar-link {% block menu_creative %}{% endblock %}">
+                <span class="sidebar-icon">🖼️</span> Creative Assets
+            </a>
+            <a href="{% url 'branding:marketing_studio' project.pk %}" class="sidebar-link {% block menu_marketing %}{% endblock %}">
+                <span class="sidebar-icon">✉️</span> Marketing Studio
+            </a>
+            <a href="{% url 'branding:social_studio' project.pk %}" class="sidebar-link {% block menu_social %}{% endblock %}">
+                <span class="sidebar-icon">📱</span> Social Media Studio
+            </a>
+            <a href="{% url 'branding:campaign_studio' project.pk %}" class="sidebar-link {% block menu_campaigns %}{% endblock %}">
+                <span class="sidebar-icon">📣</span> Campaign Studio
+            </a>
+
+            <div class="nav-section-label">3. Publish & Intelligence</div>
+            <a href="{% url 'branding:analytics' project.pk %}" class="sidebar-link {% block menu_analytics %}{% endblock %}">
+                <span class="sidebar-icon">📈</span> Brand Analytics
+            </a>
+            <a href="{% url 'branding:reports' project.pk %}" class="sidebar-link {% block menu_reports %}{% endblock %}">
+                <span class="sidebar-icon">📋</span> Exec Reports
+            </a>
+            <a href="{% url 'branding:downloads' project.pk %}" class="sidebar-link {% block menu_downloads %}{% endblock %}">
+                <span class="sidebar-icon">📥</span> Downloads & Publish
+            </a>
+            <a href="{% url 'branding:history' project.pk %}" class="sidebar-link {% block menu_history %}{% endblock %}">
+                <span class="sidebar-icon">🕒</span> Audit History
+            </a>
+            
+            <div class="nav-section-label" style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed rgba(200,190,175,0.4); color: var(--color-gold-primary);">4. Brand Activation</div>
+            <a href="{% url 'collaboration:brand_hub' project.pk %}" class="sidebar-link {% block menu_hub %}{% endblock %}">
+                <span class="sidebar-icon">🏠</span> Team Hub & Collab
+            </a>
+            <a href="{% url 'workflow:dashboard' project.pk %}" class="sidebar-link {% block menu_planner %}{% endblock %}">
+                <span class="sidebar-icon">🚀</span> Workspace Planner
+            </a>
+            <a href="{% url 'workflow:calendar' project.pk %}" class="sidebar-link {% block menu_calendar %}{% endblock %}">
+                <span class="sidebar-icon">📅</span> Brand Calendar
+            </a>
+        </nav>
+
+        <!-- Permanent Profile Footer inside Sidebar -->
+        <div class="sidebar-profile-footer" style="padding: 20px 24px; border-top: 1px solid rgba(200,190,175,0.25); background: var(--color-bg-main); border-radius: 0 0 24px 24px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="avatar-circle" style="width: 38px; height: 38px; border-radius: 50%; background: var(--color-navy-deep); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; border: 2px solid var(--color-gold-primary);">
+                    {{ user.email|slice:":1"|upper }}
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div style="font-weight:600; font-size:0.85rem; color:var(--color-navy-deep);" class="text-truncate">{{ user.email }}</div>
+                    <a href="{% url 'accounts:logout' %}" style="font-size:0.78rem; color:var(--color-gold-primary); text-decoration:none; font-weight:600;">Logout &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- WORKSPACE MAIN CONTENT -->
+    <div class="workspace-main">
+        <!-- Top Bar -->
+        <header class="workspace-topbar">
+            <!-- Breadcrumb moved to sidebar -->
+
+            <div class="topbar-actions d-flex align-items-center gap-3 ms-auto">
+                <!-- Sleek Hotkey Search bar -->
+                <div class="search-trigger-container" style="position:relative; width:220px; cursor:pointer;" onclick="openSearchModal()">
+                    <input type="text" class="form-control form-control-sm" placeholder="Search modules... (Ctrl + K)" readonly style="border-radius:10px; background:var(--color-bg-main); padding-left:32px; font-size:0.85rem; border:1px solid rgba(200,190,175,0.25); cursor:pointer;">
+                    <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:0.8rem; color:var(--color-text-muted);">🔍</span>
+                </div>
+                
+                <a href="{% url 'branding:create_project' %}" class="btn" style="background: var(--color-navy-deep); color: #fff; border-radius: 50px; font-size: 0.85rem; font-weight: 600; padding: 6px 16px; display: flex; align-items: center; gap: 8px;">
+                    <span>+</span> New Project
+                </a>
+                
+                <span class="badge bg-light text-dark px-3 py-2 border d-none d-sm-inline">Active: {{ project.industry }}</span>
+                
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <div class="workspace-content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Persistent Floating AI Chat Assistant -->
+    <div class="chat-trigger" onclick="CopilotChat.toggleChat()">💬</div>
+
+    <div class="chat-window" id="aiChatWindow">
+        <div class="chat-header">
+            <h6 class="m-0 fw-bold"><span style="color:var(--color-gold-primary);">Brand</span>Craft AI Copilot</h6>
+            <span style="cursor:pointer;" onclick="CopilotChat.toggleChat()">&times;</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-msg assistant">
+                I am your dedicated BrandCraft AI Copilot for **{{ project.business_name }}**. 
+                What would you like to build today?
+            </div>
+            
+            <div class="mt-2 d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="document.getElementById('chatInput').value='Create a social media campaign'; CopilotChat.sendMessage();">📱 Social Campaign</button>
+                <button class="btn btn-sm btn-outline-dark rounded-pill" onclick="document.getElementById('chatInput').value='Write marketing copy'; CopilotChat.sendMessage();">✍️ Marketing Copy</button>
+            </div>
+        </div>
+        <div class="chat-footer">
+            <button class="btn btn-light px-2 text-muted" id="micBtn" title="Voice Input" style="border-radius:12px; border:1px solid rgba(200,190,175,0.4);"><i class="bi bi-mic"></i></button>
+            <button class="btn btn-light px-2 text-muted" id="speakerBtn" title="Toggle Voice Output" style="border-radius:12px; border:1px solid rgba(200,190,175,0.4);"><i class="bi bi-volume-up"></i></button>
+            <input type="text" class="form-control mx-1" id="chatInput" placeholder="Ask your copilot..." style="border-radius:12px; font-size:0.85rem; border:1px solid rgba(200,190,175,0.4);">
+            <button class="btn px-3" onclick="CopilotChat.sendMessage()" style="font-size:0.8rem; background:#24545A; color:#fff; border-radius:12px;">Send</button>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="{% static 'js/chat/chat.js' %}"></script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if(window.CopilotChat) {
+            window.CopilotChat.init("{% url 'branding:chat_api' project.pk %}", "{{ csrf_token }}");
+        }
+    });
+
+    function getMockAIResponse(q) {
+        q = q.toLowerCase();
+        const bname = "{{ project.business_name }}";
+        const ind = "{{ project.industry }}";
+        
+        if (q.includes('slogan') || q.includes('tagline')) {
+            return `Here are three custom slogans for ${bname} in the ${ind} space:\n1. Elevating standard. Redefining style.\n2. The future of ${ind}, tailored for you.\n3. Smart solutions. Brilliant branding.`;
+        } else if (q.includes('colors')) {
+            return `For ${bname}, I highly suggest integrating a rich Slate Navy accented by a Soft Satin Gold to highlight luxury attributes.`;
+        } else if (q.includes('rewrite') || q.includes('improve')) {
+            return `Let me rewrite that for your target audience. Try: 'Discover the precision and elegance of ${bname}. Engineered for the discerning customer.'`;
+        }
+        return `I've analyzed your question relative to ${bname}. You can utilize our dynamic modules in the sidebar to generate custom copy or review analytics metrics.`;
+    }
+
+    // Global Toast Notification Helper
+    function showToast(message, isSuccess = true) {
+        let toast = document.getElementById('customToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'customToast';
+            toast.className = 'custom-toast';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<span style="color:var(--color-gold-primary); font-weight:bold;">${isSuccess ? '✓' : 'ℹ'}</span> <span>${message}</span>`;
+        toast.style.display = 'flex';
+        gsap.fromTo(toast, { y: 50, opacity: 0 }, { duration: 0.4, y: 0, opacity: 1, ease: 'power2.out' });
+        
+        setTimeout(() => {
+            gsap.to(toast, { duration: 0.3, y: 20, opacity: 0, onComplete: () => { toast.style.display = 'none'; } });
+        }, 3000);
+    }
+
+    // Command Center Search Modal Controls
+    function openSearchModal() {
+        const modal = document.getElementById('commandSearchModal');
+        modal.style.display = 'flex';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchInput').focus();
+        filterSearch('');
+        gsap.fromTo('.search-modal-card', { scale: 0.95, opacity: 0 }, { duration: 0.25, scale: 1, opacity: 1, ease: 'power2.out' });
+    }
+
+    function closeSearchModal(e) {
+        if (!e || e.target === document.getElementById('commandSearchModal') || e.target.classList.contains('close-search-btn')) {
+            gsap.to('.search-modal-card', { duration: 0.2, scale: 0.95, opacity: 0, onComplete: () => {
+                document.getElementById('commandSearchModal').style.display = 'none';
+            }});
+        }
+    }
+
+    function filterSearch(val) {
+        const resultsContainer = document.getElementById('searchResults');
+        
+        if (val.length < 2) {
+            resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--color-text-muted);">Type to search...</div>';
+            return;
+        }
+        
+        fetch(`/workflow/search/?q=${encodeURIComponent(val)}`)
+            .then(res => res.json())
+            .then(data => {
+                resultsContainer.innerHTML = '';
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(r => {
+                        resultsContainer.innerHTML += `
+                            <div class="search-result-item" onclick="navigateSearchResult('${r.url}')">
+                                <span class="result-icon">⚡</span>
+                                <div>
+                                    <div class="result-title">${r.title}</div>
+                                    <div class="result-subtitle">${r.subtitle}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--color-text-muted);">No results found.</div>';
+                }
+            })
+            .catch(err => {
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #E74C3C;">Search error.</div>';
+            });
+    }
+
+    function navigateSearchResult(url) {
+        window.location.href = url;
+    }
+
+    // Hotkey hooks (Ctrl + K)
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openSearchModal();
+        }
+        if (e.key === 'Escape') {
+            closeSearchModal(null);
+        }
+    });
+    </script>
+
+    <!-- Global Command Center Search Modal -->
+    <div id="commandSearchModal" class="search-modal-overlay" style="display:none;" onclick="closeSearchModal(event)">
+        <div class="search-modal-card" onclick="event.stopPropagation()">
+            <div class="search-modal-header">
+                <span class="me-2">🔍</span>
+                <input type="text" id="searchInput" class="search-modal-input" placeholder="Search workspace, files, modules... (Ctrl + K)" onkeyup="filterSearch(this.value)">
+                <span class="close-search-btn" onclick="closeSearchModal(null)">&times;</span>
+            </div>
+            <div class="search-modal-results" id="searchResults">
+                <div style="padding: 20px; text-align: center; color: var(--color-text-muted);">Type to search...</div>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

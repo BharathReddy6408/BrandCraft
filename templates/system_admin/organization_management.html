@@ -1,0 +1,237 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Organization Management | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Org Chart Skeleton */
+.org-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+    position: relative;
+}
+
+.org-node {
+    border-radius: 24px;
+    padding: 24px 40px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    min-width: 250px;
+}
+.org-node i {
+    font-size: 2.5rem;
+    color: rgba(23, 52, 79, 0.2);
+    margin-bottom: 12px;
+}
+.org-node h3 {
+    margin: 0 0 4px 0;
+    color: var(--admin-accent);
+}
+.org-node p {
+    margin: 0;
+    color: var(--admin-text-muted);
+    font-size: 0.85rem;
+}
+
+.org-line-vertical {
+    width: 2px;
+    height: 40px;
+    background: rgba(23, 52, 79, 0.1);
+}
+
+.org-branches {
+    display: flex;
+    gap: 60px;
+    position: relative;
+}
+.org-branches::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 125px; /* Half of child node width */
+    right: 125px;
+    height: 2px;
+    background: rgba(23, 52, 79, 0.1);
+}
+.org-branch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.org-branch .org-line-vertical {
+    height: 30px;
+}
+
+/* Modal CSS */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+.modal-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    width: 400px;
+    max-width: 90%;
+}
+.modal-glass h2 {
+    margin-top: 0;
+    color: var(--admin-accent);
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--admin-text-main);
+}
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(23, 52, 79, 0.2);
+    background: rgba(255, 255, 255, 0.5);
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 30px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Organization Management</h1>
+        <p>Manage shared workspaces and organization settings.</p>
+    </div>
+    <button class="btn-3d-glass" onclick="openModal()">
+        <i class="fas fa-plus"></i> Create Organization
+    </button>
+</div>
+
+<div class="org-chart-container">
+    {% if not organizations %}
+        <div class="org-node" style="border: 2px dashed rgba(23, 52, 79, 0.2); background: transparent; box-shadow: none;">
+            <i class="fas fa-sitemap" style="color: var(--color-gold-primary);"></i>
+            <h3>No Organizations Yet</h3>
+            <p>System is operating in single-user mode</p>
+        </div>
+        
+        <div class="org-line-vertical"></div>
+        
+        <div class="org-branches">
+            <div class="org-branch">
+                <div class="org-line-vertical"></div>
+                <div class="org-node card-glass" style="opacity: 0.5;">
+                    <i class="fas fa-users"></i>
+                    <h3>Team Workspace</h3>
+                    <p>Pending Creation</p>
+                </div>
+            </div>
+            
+            <div class="org-branch">
+                <div class="org-line-vertical"></div>
+                <div class="org-node card-glass" style="opacity: 0.5;">
+                    <i class="fas fa-building"></i>
+                    <h3>Enterprise Org</h3>
+                    <p>Pending Creation</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="org-node card-glass">
+            <i class="fas fa-sitemap" style="color: var(--color-gold-primary);"></i>
+            <h3>BrandCraft Platform</h3>
+            <p>Super Admin</p>
+        </div>
+        
+        <div class="org-line-vertical"></div>
+        
+        <div class="org-branches" style="flex-wrap: wrap; justify-content: center;">
+            {% for org in organizations %}
+            <div class="org-branch">
+                <div class="org-line-vertical"></div>
+                <div class="org-node card-glass">
+                    {% if org.org_type == 'team' %}<i class="fas fa-users"></i>{% else %}<i class="fas fa-building"></i>{% endif %}
+                    <h3>{{ org.name }}</h3>
+                    <p>{{ org.get_org_type_display }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Create Organization Modal -->
+<div class="modal-overlay" id="createOrgModal">
+    <div class="modal-glass">
+        <h2>Create Organization</h2>
+        <form action="{% url 'system_admin:create_organization' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Organization Name</label>
+                <input type="text" name="name" required placeholder="e.g. Acme Corp">
+            </div>
+            <div class="form-group">
+                <label>Organization Type</label>
+                <select name="org_type" required>
+                    <option value="team">Team Workspace</option>
+                    <option value="enterprise">Enterprise Org</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-3d-glass" style="background: transparent; box-shadow: none; border-color: transparent;" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn-3d-glass">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal() {
+    document.getElementById('createOrgModal').style.display = 'flex';
+}
+function closeModal() {
+    document.getElementById('createOrgModal').style.display = 'none';
+}
+</script>
+{% endblock %}

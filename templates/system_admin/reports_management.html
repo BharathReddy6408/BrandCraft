@@ -1,0 +1,245 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Reports Management | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+
+/* Report Library Skeleton */
+.report-library {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding-top: 20px;
+}
+
+.report-folder {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    height: 320px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-folder:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+}
+
+.folder-icon {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 24px;
+}
+.folder-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+}
+.folder-desc {
+    font-size: 0.85rem;
+    color: var(--admin-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Reports Management</h1>
+        <p>View, download, and manage system-generated reports.</p>
+    </div>
+    <button class="btn-3d-glass" onclick="openModal('generateReportModal')">
+        <i class="fas fa-magic"></i> Generate Custom Report
+    </button>
+</div>
+
+<!-- Generate Report Modal -->
+<div class="modal-overlay" id="generateReportModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Generate Custom Report</h2>
+            <button type="button" class="btn-close" onclick="closeModal('generateReportModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'system_admin:generate_report' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Report Type</label>
+                    <select name="report_type" class="custom-select" required>
+                        <option value="">-- Select Report Type --</option>
+                        <option value="Marketing Analytics">Marketing Analytics</option>
+                        <option value="User Engagement">User Engagement</option>
+                        <option value="Brand Usage">Brand Usage</option>
+                        <option value="Financial Summary">Financial Summary</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Date Range</label>
+                    <select name="date_range" class="custom-select" required>
+                        <option value="Last 7 Days">Last 7 Days</option>
+                        <option value="Last 30 Days">Last 30 Days</option>
+                        <option value="This Quarter">This Quarter</option>
+                        <option value="Year to Date">Year to Date</option>
+                    </select>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--admin-text-muted);">The report will be generated and downloaded immediately.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('generateReportModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass" style="margin: 0;">Generate Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+    padding-top: 20px;
+}
+
+.chart-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    padding: 32px;
+}
+
+.chart-card h2 {
+    font-size: 1.2rem;
+    color: var(--admin-accent);
+    margin-bottom: 20px;
+    font-family: 'Playfair Display', serif;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+</style>
+
+<div class="charts-grid">
+    <div class="chart-card">
+        <h2>User Registrations (Last 30 Days)</h2>
+        <div class="chart-container">
+            <canvas id="userTrendChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="chart-card">
+        <h2>Projects Created (Last 30 Days)</h2>
+        <div class="chart-container">
+            <canvas id="projectTrendChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const userLabels = {{ user_labels|safe }};
+    const userData = {{ user_data|safe }};
+    const projectLabels = {{ project_labels|safe }};
+    const projectData = {{ project_data|safe }};
+    
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = "#667085";
+
+    // 1. User Registrations Chart
+    const ctxUser = document.getElementById('userTrendChart').getContext('2d');
+    new Chart(ctxUser, {
+        type: 'line',
+        data: {
+            labels: userLabels,
+            datasets: [
+                {
+                    label: 'New Users',
+                    data: userData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 2. Projects Created Chart
+    const ctxProject = document.getElementById('projectTrendChart').getContext('2d');
+    new Chart(ctxProject, {
+        type: 'bar',
+        data: {
+            labels: projectLabels,
+            datasets: [
+                {
+                    label: 'New Projects',
+                    data: projectData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

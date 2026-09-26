@@ -1,0 +1,171 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Generating Brand Workspace | BrandCraft{% endblock %}
+
+{% block extra_css %}
+<style>
+.loader-wrapper {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-main);
+    text-align: center;
+}
+
+.loader-card {
+    background: #FFFFFF;
+    border-radius: 24px;
+    border: 1px solid rgba(200,190,175,0.25);
+    box-shadow: 0 10px 30px rgba(0,0,0,.04);
+    padding: 64px 48px;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+/* Spinner */
+.spinner-outer {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid rgba(198,139,60,0.15);
+    border-top: 3px solid var(--color-gold-primary);
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+.spinner-inner {
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(23,52,79,0.06);
+    border-bottom: 3px solid var(--color-navy-deep);
+    border-radius: 50%;
+    animation: spin 1s linear infinite reverse;
+}
+.spinner-core {
+    font-size: 1.6rem;
+    position: absolute;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Custom progress messages */
+.progress-message-box {
+    height: 64px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 32px;
+}
+.progress-msg {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.loading-bar-container {
+    height: 6px;
+    width: 100%;
+    background: rgba(200,190,175,0.25);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.loading-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--color-gold-primary), var(--color-gold-champagne));
+    border-radius: 50px;
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="loader-wrapper">
+    <div class="loader-card">
+        <!-- Spinner animation -->
+        <div class="spinner-outer">
+            <div class="spinner-ring"></div>
+            <div class="spinner-inner"></div>
+            <div class="spinner-core">🪄</div>
+        </div>
+
+        <!-- Animated Progress Message -->
+        <div class="progress-message-box">
+            <div class="progress-msg" data-index="0">Analyzing Industry...</div>
+            <div class="progress-msg" data-index="1">Understanding Customers...</div>
+            <div class="progress-msg" data-index="2">Building Brand Strategy...</div>
+            <div class="progress-msg" data-index="3">Generating Business Names...</div>
+            <div class="progress-msg" data-index="4">Creating Logo Concepts...</div>
+            <div class="progress-msg" data-index="5">Selecting Color Themes...</div>
+            <div class="progress-msg" data-index="6">Writing Marketing Content...</div>
+            <div class="progress-msg" data-index="7">Preparing Brand Kit...</div>
+            <div class="progress-msg" data-index="8">Almost Ready...</div>
+        </div>
+
+        <div class="loading-bar-container">
+            <div class="loading-bar-fill" id="loadingBar"></div>
+        </div>
+        <div class="text-muted small" id="percentText">0% Completed</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const messages = document.getElementsByClassName("progress-msg");
+const totalDuration = 9000; // 9 seconds total
+const interval = totalDuration / messages.length;
+
+let currentIdx = 0;
+
+function transitionMessage() {
+    if (currentIdx >= messages.length) {
+        // Completed, redirect to project results
+        window.location.href = "{% url 'branding:results' project.pk %}";
+        return;
+    }
+
+    // Hide previous
+    if (currentIdx > 0) {
+        gsap.to(messages[currentIdx - 1], { duration: 0.3, y: -20, opacity: 0, ease: 'power2.in' });
+    }
+
+    // Show current
+    const currentMsg = messages[currentIdx];
+    gsap.fromTo(currentMsg, 
+        { y: 20, opacity: 0 },
+        { duration: 0.4, y: 0, opacity: 1, ease: 'power2.out' }
+    );
+
+    // Update progress bar
+    const progressPercent = ((currentIdx + 1) / messages.length) * 100;
+    document.getElementById("loadingBar").style.width = progressPercent + "%";
+    document.getElementById("percentText").innerText = Math.round(progressPercent) + "% Completed";
+
+    currentIdx++;
+    setTimeout(transitionMessage, interval);
+}
+
+// Start sequence after short initial delay
+setTimeout(transitionMessage, 500);
+</script>
+{% endblock %}

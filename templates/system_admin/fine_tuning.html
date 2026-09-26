@@ -1,0 +1,380 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Fine-Tuning & Datasets | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.upload-zone {
+    border: 2px dashed rgba(23, 52, 79, 0.2);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s;
+    cursor: pointer;
+    margin-bottom: 40px;
+}
+.upload-zone:hover {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: var(--color-gold-primary);
+}
+.upload-zone i {
+    font-size: 3rem;
+    color: var(--color-gold-primary);
+    margin-bottom: 16px;
+}
+.upload-zone h3 {
+    margin: 0 0 8px 0;
+    color: var(--admin-accent);
+    font-size: 1.2rem;
+}
+.upload-zone p {
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.datasets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.dataset-card {
+    padding: 24px;
+}
+
+.dataset-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+.dataset-header h3 {
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+    color: var(--admin-accent);
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-raw { background: rgba(23, 52, 79, 0.1); color: var(--admin-accent); }
+.status-preprocessing { background: rgba(198, 139, 60, 0.1); color: var(--color-gold-primary); }
+.status-ready { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+.jobs-container {
+    margin-top: 40px;
+}
+
+.job-card {
+    padding: 24px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.job-info h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+    color: var(--admin-accent);
+}
+
+.metrics-chart-container {
+    height: 150px;
+    width: 300px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Fine-Tuning & Datasets</h1>
+        <p>Upload brand-specific datasets and train custom AI models.</p>
+    </div>
+    <button class="btn-3d-glass" onclick="openModal('trainModal')">
+        <i class="fas fa-play"></i> Start Training Job
+    </button>
+</div>
+
+<!-- Upload Zone -->
+<div class="upload-zone" onclick="openModal('uploadModal')">
+    <i class="fas fa-cloud-upload-alt"></i>
+    <h3>Upload New Dataset</h3>
+    <p>Drag and drop your .csv, .jsonl, or .zip files here, or click to browse.</p>
+</div>
+
+<!-- Datasets -->
+<h2 style="font-size: 1.4rem; color: var(--admin-accent); margin-bottom: 20px;">Your Datasets</h2>
+<div class="datasets-grid">
+    {% for ds in datasets %}
+    <div class="dataset-card card-glass">
+        <div class="dataset-header">
+            <div>
+                <h3>{{ ds.name }}</h3>
+                <span style="font-size: 0.8rem; color: var(--admin-text-muted);">{{ ds.get_dataset_type_display }}</span>
+            </div>
+            <span class="status-badge status-{{ ds.status|lower }}">{{ ds.get_status_display }}</span>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--admin-text-muted); margin-bottom: 20px;">
+            <i class="fas fa-database" style="margin-right: 6px;"></i> {{ ds.record_count }} records
+        </div>
+        
+        {% if ds.status == 'RAW' %}
+        <form action="{% url 'system_admin:preprocess_dataset' ds.id %}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-3d-glass" style="width: 100%; justify-content: center; font-size: 0.85rem; padding: 8px;">
+                <i class="fas fa-cogs"></i> Start Preprocessing
+            </button>
+        </form>
+        {% elif ds.status == 'PREPROCESSING' %}
+        <div style="width: 100%; background: rgba(0,0,0,0.05); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px;">
+            <div style="width: 45%; background: var(--color-gold-primary); height: 100%; border-radius: 4px; animation: pulse 1s infinite alternate;"></div>
+        </div>
+        <p style="text-align: center; font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 8px;">Cleaning Data...</p>
+        {% elif ds.status == 'READY' %}
+        <button class="btn-3d-glass" style="width: 100%; justify-content: center; font-size: 0.85rem; padding: 8px; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: #10b981;" disabled>
+            <i class="fas fa-check-circle"></i> Ready for Training
+        </button>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p style="color: var(--admin-text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">No datasets uploaded yet.</p>
+    {% endfor %}
+</div>
+
+<!-- Training Jobs -->
+<div class="jobs-container">
+    <h2 style="font-size: 1.4rem; color: var(--admin-accent); margin-bottom: 20px;">Training Jobs</h2>
+    {% for job in jobs %}
+    <div class="job-card card-glass" id="job-{{ job.id }}">
+        <div class="job-info">
+            <h4>{{ job.base_model.name }} fine-tuning</h4>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin: 0 0 12px 0;">
+                Dataset: <strong>{{ job.dataset.name }}</strong> &bull; Epochs: {{ job.epochs }} &bull; Status: <span class="status-badge" style="background: rgba(23,52,79,0.1);">{{ job.get_status_display }}</span>
+            </p>
+            
+            {% if job.status == 'TRAINING' %}
+            <button class="btn-3d-glass" onclick="simulateTraining({{ job.id }})" style="font-size: 0.8rem; padding: 6px 12px;" id="sim-btn-{{ job.id }}">
+                <i class="fas fa-forward"></i> Fast-Forward Training (Simulate)
+            </button>
+            {% elif job.status == 'COMPLETED' %}
+            <div style="display: flex; gap: 20px; font-size: 0.9rem;">
+                <div><strong style="color: #10b981;">Accuracy:</strong> {{ job.final_accuracy|floatformat:2 }}</div>
+                <div><strong style="color: #ef4444;">Loss:</strong> {{ job.final_loss|floatformat:2 }}</div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if job.status == 'COMPLETED' and job.training_logs %}
+        <div class="metrics-chart-container">
+            <canvas id="chart-{{ job.id }}"></canvas>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p style="color: var(--admin-text-muted); text-align: center; padding: 40px; background: rgba(255,255,255,0.4); border-radius: 20px;">No training jobs found.</p>
+    {% endfor %}
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Upload Dataset</h2>
+            <button type="button" class="btn-close" onclick="closeModal('uploadModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'system_admin:upload_dataset' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Dataset Name</label>
+                    <input type="text" name="name" class="custom-select" style="background-image: none;" placeholder="e.g. Brand Voice Guidelines V2" required>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Type</label>
+                    <select name="dataset_type" class="custom-select" required>
+                        <option value="TEXT">Text Data (.csv, .jsonl)</option>
+                        <option value="IMAGE">Image Data (.zip)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">File</label>
+                    <input type="file" name="file" class="custom-select" style="background-image: none; padding: 9px 16px;" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="closeModal('uploadModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass" style="margin: 0; background: rgba(198, 139, 60, 0.9); color: white;">Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Start Training Modal -->
+<div class="modal-overlay" id="trainModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Start Fine-Tuning</h2>
+            <button type="button" class="btn-close" onclick="closeModal('trainModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form action="{% url 'system_admin:start_training' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Base Model</label>
+                    <select name="model_id" class="custom-select" required>
+                        {% for model in models %}
+                        <option value="{{ model.id }}">{{ model.name }} ({{ model.get_model_type_display }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Dataset</label>
+                    <select name="dataset_id" class="custom-select" required>
+                        {% for ds in datasets %}
+                            {% if ds.status == 'READY' %}
+                            <option value="{{ ds.id }}">{{ ds.name }} ({{ ds.record_count }} records)</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <small style="color: var(--admin-text-muted); display: block; margin-top: 4px;">Only 'Ready' datasets are shown.</small>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Epochs</label>
+                    <input type="number" name="epochs" class="custom-select" style="background-image: none;" value="3" min="1" max="100" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="closeModal('trainModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass" style="margin: 0; background: rgba(198, 139, 60, 0.9); color: white;">Start Training</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; setTimeout(() => document.getElementById(id).style.opacity = '1', 10); }
+    function closeModal(id) { document.getElementById(id).style.opacity = '0'; setTimeout(() => document.getElementById(id).style.display = 'none', 300); }
+
+    function simulateTraining(jobId) {
+        let btn = document.getElementById('sim-btn-' + jobId);
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+        
+        // CSRF Token logic for fetch
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        fetch(`/portal/fine-tuning/train/${jobId}/complete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+        }).then(res => res.json()).then(data => {
+            if(data.status === 'success') {
+                window.location.reload();
+            }
+        });
+    }
+
+    // Render charts for completed jobs
+    document.addEventListener("DOMContentLoaded", function() {
+        {% for job in jobs %}
+            {% if job.status == 'COMPLETED' and job.training_logs %}
+            try {
+                const logs = {{ job.training_logs|safe }};
+                const ctx = document.getElementById('chart-{{ job.id }}').getContext('2d');
+                
+                const labels = logs.map(l => `Ep ${l.epoch}`);
+                const accData = logs.map(l => l.accuracy);
+                const lossData = logs.map(l => l.loss);
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Accuracy',
+                                data: accData,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Loss',
+                                data: lossData,
+                                borderColor: '#ef4444',
+                                backgroundColor: 'transparent',
+                                tension: 0.4,
+                                borderDash: [5, 5],
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { type: 'linear', display: true, position: 'left', min: 0, max: 1 },
+                            y1: { type: 'linear', display: false, position: 'right' }
+                        }
+                    }
+                });
+            } catch(e) { console.error(e); }
+            {% endif %}
+        {% endfor %}
+    });
+</script>
+{% endblock %}

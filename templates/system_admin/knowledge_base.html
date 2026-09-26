@@ -1,0 +1,343 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}AI Knowledge Base | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.kb-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 30px;
+}
+
+.upload-zone {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 2px dashed rgba(23, 52, 79, 0.3);
+    border-radius: 24px;
+    padding: 60px 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.upload-zone:hover {
+    border-color: var(--admin-accent);
+    background: rgba(255, 255, 255, 0.7);
+}
+.upload-icon {
+    font-size: 3rem;
+    color: var(--admin-accent);
+    margin-bottom: 20px;
+}
+.upload-zone h3 {
+    margin: 0 0 8px 0;
+    color: var(--admin-accent);
+}
+.upload-zone p {
+    margin: 0;
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+}
+
+/* File List */
+.file-list-card {
+    padding: 24px;
+    flex: 1;
+}
+.file-list-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--admin-border);
+    padding-bottom: 12px;
+}
+.file-list-header h3 {
+    margin: 0;
+    color: var(--admin-accent);
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    margin-bottom: 12px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.file-item:hover {
+    background: white;
+    border-color: var(--admin-border);
+    transform: translateX(4px);
+}
+
+.file-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: #e0e7ff;
+    color: #4f46e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.file-info {
+    flex: 1;
+}
+.file-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    color: var(--admin-text-main);
+}
+.file-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--admin-text-muted);
+}
+
+.file-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.status-processed { background: #dcfce7; color: #16a34a; }
+.status-indexing { background: #dbeafe; color: #2563eb; }
+
+.file-actions button {
+    border: none;
+    background: transparent;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+}
+.file-actions button:hover {
+    background: rgba(0,0,0,0.05);
+    color: #dc2626;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--admin-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>AI Knowledge Base</h1>
+        <p>Manage uploaded documents for RAG context and model fine-tuning.</p>
+    </div>
+</div>
+
+<div class="kb-layout">
+    <div class="file-list-card card-glass">
+        <div class="file-list-header">
+            <h3>Document Repository</h3>
+            <span style="font-size: 0.85rem; color: var(--admin-text-muted);"><i class="fas fa-database"></i> FAISS Vector Index Active</span>
+        </div>
+        
+        <div class="file-list">
+            <div id="fileListContainer">
+            {% for doc in documents %}
+            <div class="file-item">
+                <div class="file-icon"><i class="fas fa-file-pdf"></i></div>
+                <div class="file-info">
+                    <h4>{{ doc.title }}</h4>
+                    <p>Project: {{ doc.project.business_name|default:"Global Context" }} • {{ doc.uploaded_at|date:"M d, Y" }}</p>
+                </div>
+                <div>
+                    {% if doc.is_processed %}
+                        <span class="file-status status-processed"><i class="fas fa-check-circle"></i> Vectorized</span>
+                    {% else %}
+                        <span class="file-status status-indexing"><i class="fas fa-sync fa-spin"></i> Indexing...</span>
+                    {% endif %}
+                </div>
+                <div class="file-actions">
+                    <button onclick="openModal('deleteDocModal{{ doc.id }}')"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+            
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-folder-open" style="font-size: 3rem; color:#cbd5e1; margin-bottom:16px;"></i>
+                <p>No documents found in the Knowledge Base.</p>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <form action="{% url 'system_admin:upload_document' %}" method="POST" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            <input type="file" id="fileInput" name="document" style="display: none;" accept=".pdf,.docx,.txt" multiple>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click();">
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <h3>Upload Documents</h3>
+                <p>Drag & drop files here, or click to browse.</p>
+                <p style="font-size:0.75rem; margin-top: 12px;">Supports PDF, DOCX, TXT (Max 10MB)</p>
+            </div>
+        </form>
+        
+        <script>
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            const uploadForm = document.getElementById('uploadForm');
+            const fileListContainer = document.getElementById('fileListContainer');
+
+            fileInput.addEventListener('change', () => {
+                if(fileInput.files.length > 0) {
+                    processUpload(fileInput.files);
+                }
+            });
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            uploadZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+                processUpload(files);
+            }
+            
+            function processUpload(files) {
+                let formData = new FormData(uploadForm);
+                formData.delete('document');
+                for(let i=0; i<files.length; i++) {
+                    formData.append('document', files[i]);
+                }
+                
+                // Show loading state...
+                const originalContent = uploadZone.innerHTML;
+                uploadZone.innerHTML = '<div class="upload-icon"><i class="fas fa-sync fa-spin"></i></div><h3>Uploading...</h3><p>Processing files dynamically</p>';
+                
+                fetch(uploadForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        // Remove empty state if it exists
+                        const emptyState = document.querySelector('.empty-state');
+                        if (emptyState) emptyState.remove();
+                        
+                        // Append new documents
+                        data.documents.forEach(doc => {
+                            const docHtml = `
+                            <div class="file-item">
+                                <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+                                <div class="file-info">
+                                    <h4 style="margin: 0 0 4px 0; color: var(--admin-accent); font-weight: 600;">${doc.title}</h4>
+                                    <p style="margin: 0; font-size: 0.85rem; color: var(--admin-text-muted);">Project: Global Context • ${doc.uploaded_at}</p>
+                                </div>
+                                <div class="file-status-badge" style="margin-left: auto; margin-right: 16px;">
+                                    ${doc.is_processed ? 
+                                        '<span class="file-status status-processed"><i class="fas fa-check-circle"></i> Vectorized</span>' : 
+                                        '<span class="file-status status-indexing"><i class="fas fa-sync fa-spin"></i> Indexing...</span>'}
+                                </div>
+                                <div class="file-actions">
+                                    <button onclick="window.location.reload()"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                            `;
+                            fileListContainer.insertAdjacentHTML('afterbegin', docHtml);
+                        });
+                        
+                        // Reset form
+                        uploadForm.reset();
+                    } else {
+                        alert("Upload failed: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("An error occurred during upload.");
+                })
+                .finally(() => {
+                    uploadZone.innerHTML = originalContent;
+                });
+            }
+        </script>
+        <div class="card-glass" style="margin-top: 24px; padding: 20px;">
+            <h4 style="margin: 0 0 12px 0; color: var(--admin-accent);">Storage Metrics</h4>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px;">
+                <span>Total Documents</span>
+                <strong>{{ documents|length }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px;">
+                <span>Vector Indexes</span>
+                <strong>{{ documents|length }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for doc in documents %}
+<!-- Delete Document Modal -->
+<div class="modal-overlay" id="deleteDocModal{{ doc.id }}">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Confirm Deletion</h2>
+            <button type="button" class="btn-close" onclick="closeModal('deleteDocModal{{ doc.id }}')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete the document <strong>"{{ doc.title }}"</strong>? This action cannot be undone.</p>
+        </div>
+        <form action="{% url 'system_admin:delete_document' doc.id %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-footer">
+                <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('deleteDocModal{{ doc.id }}')">Cancel</button>
+                <button type="submit" class="btn-3d-glass" style="margin: 0; background: #ef4444; color: white;">Delete Document</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

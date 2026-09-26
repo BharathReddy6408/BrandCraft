@@ -1,0 +1,270 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Subscription & Billing | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.plan-card {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-header {
+    margin-bottom: 24px;
+}
+.plan-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.plan-price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--admin-text-main);
+    font-family: 'Playfair Display', serif;
+}
+.plan-price span {
+    font-size: 1rem;
+    color: var(--admin-text-muted);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+}
+
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+    flex: 1;
+}
+.plan-features li {
+    padding: 8px 0;
+    color: var(--admin-text-main);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(23, 52, 79, 0.05);
+}
+.plan-features li i {
+    color: #16a34a;
+    font-size: 1rem;
+}
+
+
+
+/* Subscriptions Table */
+.table-container {
+    overflow: hidden;
+}
+
+.subs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.subs-table th {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--admin-text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.subs-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text-main);
+    font-size: 0.9rem;
+}
+
+.subs-table tr:hover { background: rgba(255,255,255,0.9); }
+.subs-table tr:last-child td { border-bottom: none; }
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.status-active { background: #dcfce7; color: #16a34a; }
+.status-inactive { background: #fee2e2; color: #dc2626; }
+
+.empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--admin-text-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Subscription & Billing</h1>
+        <p>Monitor user subscriptions, active plans, and billing history.</p>
+    </div>
+</div>
+
+<h2 style="font-size: 1.2rem; color: var(--admin-accent); margin-bottom: 20px;">Available Plans</h2>
+<div class="plans-grid">
+    {% for plan in plans %}
+    <div class="plan-card card-glass">
+        <div class="plan-header">
+            <div class="plan-name">{{ plan.name }}</div>
+            <div class="plan-price">₹{{ plan.monthly_price|floatformat:0 }}<span>/mo</span></div>
+        </div>
+        <ul class="plan-features">
+            <li><i class="fas fa-check"></i> {{ plan.max_brands }} Active Brands</li>
+            <li><i class="fas fa-check"></i> {{ plan.max_generations_per_month }} AI Generations/mo</li>
+            {% if plan.includes_marketing_copy %}<li><i class="fas fa-check"></i> Marketing Copy</li>{% endif %}
+            {% if plan.has_api_access %}<li><i class="fas fa-check"></i> API Access</li>{% endif %}
+        </ul>
+        <button class="btn-3d-glass" style="justify-content:center;" onclick="openModal('editPlanModal{{ plan.id }}')">Edit Plan</button>
+    </div>
+    
+    <!-- Edit Plan Modal -->
+    <div class="modal-overlay" id="editPlanModal{{ plan.id }}">
+        <div class="custom-modal">
+            <div class="modal-header">
+                <h2>Edit Plan: {{ plan.name }}</h2>
+                <button type="button" class="btn-close" onclick="closeModal('editPlanModal{{ plan.id }}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="{% url 'system_admin:update_subscription_plan' plan.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Monthly Price (₹)</label>
+                        <input type="number" step="0.01" name="monthly_price" class="custom-select" style="background-image: none;" value="{{ plan.monthly_price }}" required>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Max Active Brands</label>
+                        <input type="number" name="max_brands" class="custom-select" style="background-image: none;" value="{{ plan.max_brands }}" required>
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Max Generations / Month</label>
+                        <input type="number" name="max_generations_per_month" class="custom-select" style="background-image: none;" value="{{ plan.max_generations_per_month }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('editPlanModal{{ plan.id }}')">Cancel</button>
+                    <button type="submit" class="btn-3d-glass" style="margin: 0;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <p>No subscription plans have been defined yet.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<h2 style="font-size: 1.2rem; color: var(--admin-accent); margin-bottom: 20px;">User Subscriptions</h2>
+<div class="table-container card-glass">
+    <table class="subs-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Period End</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in active_subs %}
+            <tr>
+                <td><strong>{{ sub.user.username }}</strong><br><span style="font-size:0.8rem;color:var(--admin-text-muted);">{{ sub.user.email }}</span></td>
+                <td>{{ sub.plan.name|default:"None" }}</td>
+                <td>
+                    {% if sub.is_active %}
+                        <span class="status-badge status-active">Active</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>{{ sub.current_period_end|date:"M d, Y"|default:"N/A" }}</td>
+                <td>
+                    <button style="border:none;background:transparent;color:var(--admin-text-muted);cursor:pointer;" onclick="openModal('manageSubModal{{ sub.id }}')"><i class="fas fa-ellipsis-v"></i></button>
+                    
+                    <!-- Manage Subscription Modal -->
+                    <div class="modal-overlay" id="manageSubModal{{ sub.id }}">
+                        <div class="custom-modal">
+                            <div class="modal-header">
+                                <h2>Manage Subscription</h2>
+                                <button type="button" class="btn-close" onclick="closeModal('manageSubModal{{ sub.id }}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <form action="{% url 'system_admin:manage_subscription' sub.id %}" method="POST">
+                                {% csrf_token %}
+                                <div class="modal-body" style="text-align: left;">
+                                    <p>User: <strong>{{ sub.user.username }}</strong></p>
+                                    <p>Current Plan: <strong>{{ sub.plan.name|default:"None" }}</strong></p>
+                                    <div style="margin-top: 16px;">
+                                        <label style="display: block; font-weight: 600; color: var(--admin-accent); margin-bottom: 8px;">Action</label>
+                                        <select name="action" class="custom-select" required>
+                                            <option value="">-- Select Action --</option>
+                                            {% if sub.is_active %}
+                                            <option value="cancel">Cancel Subscription</option>
+                                            {% else %}
+                                            <option value="activate">Activate Subscription</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn-action" style="padding: 12px 24px; border-radius: 12px;" onclick="closeModal('manageSubModal{{ sub.id }}')">Close</button>
+                                    <button type="submit" class="btn-3d-glass" style="margin: 0;">Apply Action</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty-state">No users are currently subscribed to any plans.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

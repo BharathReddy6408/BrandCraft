@@ -1,0 +1,484 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Select Brand Variation | BrandCraft{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Sweeping background gradient and layout */
+.results-wrapper {
+    min-height: calc(100vh - 72px);
+    background: radial-gradient(circle at 50% 0%, rgba(198,139,60,0.08) 0%, var(--color-bg-main) 60%);
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative background elements */
+.results-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(23,52,79,0.04) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+}
+.results-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    right: -150px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(198,139,60,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: 56px;
+    position: relative;
+    z-index: 1;
+}
+
+.results-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-navy-deep), #2A4C6B);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+}
+
+.results-subtitle {
+    color: var(--color-text-p);
+    font-size: 1.15rem;
+    max-width: 600px;
+    margin: 0 auto;
+    font-weight: 400;
+}
+
+/* Variation Cards Grid */
+.variation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+@media (max-width: 991px) {
+    .variation-grid { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* Premium Card with Glassmorphism */
+.variation-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,1);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.variation-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px rgba(23,52,79,0.08), inset 0 1px 0 rgba(255,255,255,1);
+    border-color: rgba(198,139,60,0.4);
+}
+
+.variation-badge {
+    position: absolute;
+    top: 32px;
+    right: 32px;
+    background: rgba(255,255,255,0.9);
+    color: var(--color-navy-deep);
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 6px 16px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(200,190,175,0.4);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+
+.variation-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-navy-deep);
+    margin-bottom: 24px;
+    padding-right: 100px;
+    line-height: 1.2;
+}
+
+/* Dynamic Gradient Mockup Visual Box */
+.mockup-visual-box {
+    height: 220px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+}
+
+/* Mesh Gradients for Boxes */
+.mesh-a { background: linear-gradient(135deg, #EEF3F1 0%, #DCE8E2 100%); }
+.mesh-b { background: linear-gradient(135deg, #F4F1EB 0%, #E6DFD1 100%); }
+.mesh-c { background: linear-gradient(135deg, #EAF3EE 0%, #D1E5DA 100%); }
+.mesh-d { background: linear-gradient(135deg, #FEF0EF 0%, #FAD2CE 100%); }
+
+.logo-mock {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 2.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 2;
+    animation: float 6s ease-in-out infinite;
+}
+.logo-emblem {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Refined Palette presentation */
+.palette-swatches {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+}
+.palette-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    margin-left: -12px;
+    transition: transform 0.2s ease;
+}
+.palette-dot:first-child {
+    margin-left: 0;
+}
+.palette-dot:hover {
+    transform: translateY(-4px) scale(1.1);
+    z-index: 10;
+}
+
+.slogan-quote {
+    font-style: italic;
+    color: var(--color-navy-deep);
+    font-size: 1.05rem;
+    border-left: 4px solid var(--color-gold-primary);
+    padding-left: 20px;
+    margin: 28px 0;
+    line-height: 1.5;
+}
+
+.card-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: auto;
+    border-top: 1px solid rgba(200,190,175,0.3);
+    padding-top: 32px;
+}
+.btn-action-outline {
+    flex-grow: 1;
+    background: #FFFFFF;
+    border: 1px solid rgba(200,190,175,0.8);
+    color: var(--color-navy-deep);
+    border-radius: 50px;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+}
+.btn-action-outline:hover {
+    background: #FDFBF7;
+    border-color: var(--color-gold-primary);
+    transform: translateY(-2px);
+}
+
+.btn-dark-premium {
+    background: linear-gradient(135deg, var(--color-navy-deep), #102438);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(23,52,79,0.2);
+}
+.btn-dark-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(23,52,79,0.3);
+    background: linear-gradient(135deg, #102438, #0A1622);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-wrapper">
+    <div class="results-header">
+        <h1 class="results-title">Select Your Brand Style</h1>
+        <p class="results-subtitle">Our AI Coordinator has created 4 unique strategic variations for **{{ project.business_name }}**.</p>
+    </div>
+
+    <div class="variation-grid">
+        <!-- Variation A -->
+        <div class="variation-card">
+            <span class="variation-badge">Variation A</span>
+            <h3 class="variation-title">The Modern Avant-Garde</h3>
+            
+            <div class="mockup-visual-box mesh-a">
+                <div class="logo-mock" style="color:#17344F;">
+                    <div class="logo-emblem" style="background:#C68B3C; color:#fff;">E</div>
+                    {{ project.business_name }}
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label small text-muted">Palette</label>
+                <div class="palette-swatches">
+                    <div class="palette-dot" style="background:#17344F;"></div>
+                    <div class="palette-dot" style="background:#C68B3C;"></div>
+                    <div class="palette-dot" style="background:#EEF3F1;"></div>
+                    <div class="palette-dot" style="background:#FFFFFF;"></div>
+                </div>
+            </div>
+
+            <div class="slogan-quote">
+                "Redefining modern efficiency with a touch of elegance."
+            </div>
+
+            <div style="font-size:0.85rem; color:var(--color-text-p);">
+                <strong>Typography:</strong> Playfair Display & Inter
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-action-outline" onclick="compare('A')">Compare</button>
+                <form method="post" action="{% url 'branding:project_detail' project.pk %}" style="flex-grow:2;">
+                    {% csrf_token %}
+                    <input type="hidden" name="selected_variation" value="A">
+                    <button type="submit" class="btn-dark-premium">Select & Activate &rarr;</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Variation B -->
+        <div class="variation-card">
+            <span class="variation-badge">Variation B</span>
+            <h3 class="variation-title">The Organic Minimalist</h3>
+            
+            <div class="mockup-visual-box mesh-b">
+                <div class="logo-mock" style="color:#8FA99B; font-family:'Inter', sans-serif; font-weight:700;">
+                    <div class="logo-emblem" style="background:#AFC8BE; color:#1A2530; border-radius:50%;">e</div>
+                    {{ project.business_name|lower }}
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label small text-muted">Palette</label>
+                <div class="palette-swatches">
+                    <div class="palette-dot" style="background:#8FA99B;"></div>
+                    <div class="palette-dot" style="background:#AFC8BE;"></div>
+                    <div class="palette-dot" style="background:#F4F1EB;"></div>
+                    <div class="palette-dot" style="background:#1A2530;"></div>
+                </div>
+            </div>
+
+            <div class="slogan-quote">
+                "Naturally simple. Consistently pure."
+            </div>
+
+            <div style="font-size:0.85rem; color:var(--color-text-p);">
+                <strong>Typography:</strong> Outfit & Inter
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-action-outline" onclick="compare('B')">Compare</button>
+                <form method="post" action="{% url 'branding:project_detail' project.pk %}" style="flex-grow:2;">
+                    {% csrf_token %}
+                    <input type="hidden" name="selected_variation" value="B">
+                    <button type="submit" class="btn-dark-premium">Select & Activate &rarr;</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Variation C -->
+        <div class="variation-card">
+            <span class="variation-badge">Variation C</span>
+            <h3 class="variation-title">The Bold Tech Icon</h3>
+            
+            <div class="mockup-visual-box mesh-c">
+                <div class="logo-mock" style="color:#1A2530; font-family:'Courier New', monospace; font-weight:700;">
+                    <div class="logo-emblem" style="background:#1A2530; color:#fff; border-radius:0;">[E]</div>
+                    {{ project.business_name|upper }}
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label small text-muted">Palette</label>
+                <div class="palette-swatches">
+                    <div class="palette-dot" style="background:#1A2530;"></div>
+                    <div class="palette-dot" style="background:#D8AE68;"></div>
+                    <div class="palette-dot" style="background:#EAF3EE;"></div>
+                    <div class="palette-dot" style="background:#FCFAFA;"></div>
+                </div>
+            </div>
+
+            <div class="slogan-quote">
+                "Unlocking computational power with zero compromise."
+            </div>
+
+            <div style="font-size:0.85rem; color:var(--color-text-p);">
+                <strong>Typography:</strong> Space Grotesk & Courier
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-action-outline" onclick="compare('C')">Compare</button>
+                <form method="post" action="{% url 'branding:project_detail' project.pk %}" style="flex-grow:2;">
+                    {% csrf_token %}
+                    <input type="hidden" name="selected_variation" value="C">
+                    <button type="submit" class="btn-dark-premium">Select & Activate &rarr;</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Variation D -->
+        <div class="variation-card">
+            <span class="variation-badge">Variation D</span>
+            <h3 class="variation-title">The Heritage Classic</h3>
+            
+            <div class="mockup-visual-box mesh-d">
+                <div class="logo-mock" style="color:#8A252C; font-family:'Playfair Display', serif; font-style:italic; font-weight:800;">
+                    <div class="logo-emblem" style="background:#8A252C; color:#E8D8C8; border-radius:8px;">E</div>
+                    {{ project.business_name }}
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label small text-muted">Palette</label>
+                <div class="palette-swatches">
+                    <div class="palette-dot" style="background:#8A252C;"></div>
+                    <div class="palette-dot" style="background:#E8D8C8;"></div>
+                    <div class="palette-dot" style="background:#FEF0EF;"></div>
+                    <div class="palette-dot" style="background:#FBF8F2;"></div>
+                </div>
+            </div>
+
+            <div class="slogan-quote">
+                "Crafted legacy. Built for future generations."
+            </div>
+
+            <div style="font-size:0.85rem; color:var(--color-text-p);">
+                <strong>Typography:</strong> Merriweather & Lora
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-action-outline" onclick="compare('D')">Compare</button>
+                <form method="post" action="{% url 'branding:project_detail' project.pk %}" style="flex-grow:2;">
+                    {% csrf_token %}
+                    <input type="hidden" name="selected_variation" value="D">
+                    <button type="submit" class="btn-dark-premium">Select & Activate &rarr;</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comparison Modal -->
+<div class="modal fade" id="compareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:24px; border:none; box-shadow:0 20px 50px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold" style="font-family:'Playfair Display',serif; font-size:1.8rem; color:var(--color-navy-deep);" id="modalVarName">Comparison Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <div class="p-4 mb-4" id="modalVisual" style="border-radius:16px; min-height:180px; display:flex; align-items:center; justify-content:center;">
+                </div>
+                <h6 class="fw-bold" style="font-family:'Inter',sans-serif; color:var(--color-navy-deep);">Brand Voice & Personality Alignment</h6>
+                <p class="text-muted" id="modalPitch">This profile is generated specifically using target demographics metrics to match premium values.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function compare(variant) {
+    const modal = new bootstrap.Modal(document.getElementById('compareModal'));
+    
+    const visual = document.getElementById('modalVisual');
+    const title = document.getElementById('modalVarName');
+    const pitch = document.getElementById('modalPitch');
+    
+    if (variant === 'A') {
+        title.innerText = "Variation A: The Modern Avant-Garde";
+        visual.style.background = "#EEF3F1";
+        visual.innerHTML = `<div class="logo-mock" style="color:#17344F;"><div class="logo-emblem" style="background:#C68B3C; color:#fff;">E</div>{{ project.business_name }}</div>`;
+        pitch.innerText = "Designed with structured layouts and play of gold and navy primary elements. Highlights authority, high-value, and technical precision. Recommended for high-end SaaS projects.";
+    } else if (variant === 'B') {
+        title.innerText = "Variation B: The Organic Minimalist";
+        visual.style.background = "#F4F1EB";
+        visual.innerHTML = `<div class="logo-mock" style="color:#8FA99B; font-family:'Inter', sans-serif; font-weight:700;"><div class="logo-emblem" style="background:#AFC8BE; color:#1A2530; border-radius:50%;">e</div>{{ project.business_name|lower }}</div>`;
+        pitch.innerText = "Focuses on earthy tones and rounded layouts. Best suited for sustainable, environment-friendly, wellness, or organic food/retail products.";
+    } else if (variant === 'C') {
+        title.innerText = "Variation C: The Bold Tech Icon";
+        visual.style.background = "#EAF3EE";
+        visual.innerHTML = `<div class="logo-mock" style="color:#1A2530; font-family:'Courier New', monospace; font-weight:700;"><div class="logo-emblem" style="background:#1A2530; color:#fff; border-radius:0;">[E]</div>{{ project.business_name|upper }}</div>`;
+        pitch.innerText = "Sharp contrast, monospace aesthetics, and bold outlines. Gives a strong developer/geometrical presence. Perfect for cutting-edge software and hardware applications.";
+    } else if (variant === 'D') {
+        title.innerText = "Variation D: The Heritage Classic";
+        visual.style.background = "#FEF0EF";
+        visual.innerHTML = `<div class="logo-mock" style="color:#8A252C; font-family:'Playfair Display', serif; font-style:italic; font-weight:800;"><div class="logo-emblem" style="background:#8A252C; color:#E8D8C8; border-radius:8px;">E</div>{{ project.business_name }}</div>`;
+        pitch.innerText = "Reflects deep traditional values, luxury heritage, and long-standing credibility. Excellent choice for luxury styling, boutique agencies, or real estate developments.";
+    }
+    
+    modal.show();
+}
+
+// Fade-in staggered Grid
+window.addEventListener('load', () => {
+    gsap.fromTo(".variation-card", 
+        { y: 30, opacity: 0 },
+        { duration: 0.8, y: 0, opacity: 1, stagger: 0.15, ease: "power3.out" }
+    );
+});
+</script>
+{% endblock %}

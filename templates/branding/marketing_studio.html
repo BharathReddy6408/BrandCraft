@@ -1,0 +1,465 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Marketing Studio | {{ project.business_name }}{% endblock %}
+
+{% block menu_marketing %}active{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4" style="border-radius: 24px; background: #FFF;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Marketing Studio</h2>
+    </div>
+    <p class="text-muted mb-4">Create on-brand marketing content powered by your Brand DNA.</p>
+
+    <!-- Quick Generators -->
+    <ul class="nav nav-pills mb-4 border-bottom pb-3" id="marketingTabs" role="tablist" style="gap:8px;">
+        <li class="nav-item">
+            <button class="nav-link active btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#adCopy" type="button" role="tab">Ad Copy</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#emailCopy" type="button" role="tab">Email</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#landingCopy" type="button" role="tab">Landing Page</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#blogCopy" type="button" role="tab">Blog</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn btn-light-pill px-4" data-bs-toggle="pill" data-bs-target="#seoCopy" type="button" role="tab">SEO</button>
+        </li>
+    </ul>
+
+    <div class="row g-4">
+        <!-- Generator Form Area -->
+        <div class="col-md-5">
+            <div class="p-4 h-100" style="background:var(--color-bg-main); border-radius:16px; border:1px solid rgba(200,190,175,0.3);">
+                <div class="tab-content">
+                    
+                    <!-- AD COPY FORM -->
+                    <div class="tab-pane fade show active" id="adCopy" role="tabpanel">
+                        <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">Advertisement Copy</h5>
+                        <form onsubmit="generateContent(event, 'AD')">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Ad Goal</label>
+                                <select name="goal" class="form-select" required style="border-radius:10px;">
+                                    <option value="Awareness">Awareness</option>
+                                    <option value="Product Promotion">Product Promotion</option>
+                                    <option value="Lead Generation">Lead Generation</option>
+                                    <option value="Conversion">Conversion</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Platform</label>
+                                <select name="platform" class="form-select" required style="border-radius:10px;">
+                                    <option value="Google">Google</option>
+                                    <option value="LinkedIn">LinkedIn</option>
+                                    <option value="Facebook">Facebook</option>
+                                    <option value="Instagram">Instagram</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Offer / Product</label>
+                                <input type="text" name="offer" class="form-control" required placeholder="e.g. Summer Sale 20% Off" style="border-radius:10px;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Optional Details</label>
+                                <textarea name="details" class="form-control" rows="2" style="border-radius:10px;"></textarea>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">CTA Style</label>
+                                <select name="cta_style" class="form-select" required style="border-radius:10px;">
+                                    <option value="Direct">Direct</option>
+                                    <option value="Soft">Soft</option>
+                                    <option value="Professional">Professional</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2 gen-btn">Generate Ad Copy &rarr;</button>
+                        </form>
+                    </div>
+
+                    <!-- EMAIL FORM -->
+                    <div class="tab-pane fade" id="emailCopy" role="tabpanel">
+                        <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">Email Campaign</h5>
+                        <form onsubmit="generateContent(event, 'EMAIL')">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Email Purpose</label>
+                                <select name="purpose" class="form-select" required style="border-radius:10px;">
+                                    <option value="Product Launch">Product Launch</option>
+                                    <option value="Promotion">Promotion</option>
+                                    <option value="Newsletter">Newsletter</option>
+                                    <option value="Welcome">Welcome</option>
+                                    <option value="Announcement">Announcement</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Subject / Topic</label>
+                                <input type="text" name="topic" class="form-control" required placeholder="e.g. New feature rollout" style="border-radius:10px;">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Optional Offer</label>
+                                <textarea name="offer" class="form-control" rows="2" style="border-radius:10px;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2 gen-btn">Generate Email &rarr;</button>
+                        </form>
+                    </div>
+
+                    <!-- LANDING PAGE FORM -->
+                    <div class="tab-pane fade" id="landingCopy" role="tabpanel">
+                        <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">Landing Page Copy</h5>
+                        <form onsubmit="generateContent(event, 'LANDING_PAGE')">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Page Goal</label>
+                                <select name="goal" class="form-select" required style="border-radius:10px;">
+                                    <option value="Product Launch">Product Launch</option>
+                                    <option value="Lead Generation">Lead Generation</option>
+                                    <option value="Service Promotion">Service Promotion</option>
+                                    <option value="Brand Introduction">Brand Introduction</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Product / Service</label>
+                                <input type="text" name="product" class="form-control" required style="border-radius:10px;">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Optional Details</label>
+                                <textarea name="details" class="form-control" rows="2" style="border-radius:10px;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2 gen-btn">Generate Landing Copy &rarr;</button>
+                        </form>
+                    </div>
+
+                    <!-- BLOG FORM -->
+                    <div class="tab-pane fade" id="blogCopy" role="tabpanel">
+                        <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">Blog Content</h5>
+                        <form onsubmit="generateContent(event, 'BLOG')">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Topic</label>
+                                <input type="text" name="topic" class="form-control" required style="border-radius:10px;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Content Goal</label>
+                                <input type="text" name="goal" class="form-control" required style="border-radius:10px;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Length</label>
+                                <select name="length" class="form-select" required style="border-radius:10px;">
+                                    <option value="Short">Short</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Long">Long</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Optional Keywords</label>
+                                <input type="text" name="keywords" class="form-control" style="border-radius:10px;">
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2 gen-btn">Generate Blog Post &rarr;</button>
+                        </form>
+                    </div>
+
+                    <!-- SEO FORM -->
+                    <div class="tab-pane fade" id="seoCopy" role="tabpanel">
+                        <h5 class="fw-bold mb-4" style="color:var(--color-navy-deep);">SEO Metadata</h5>
+                        <form onsubmit="generateContent(event, 'SEO')">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Page / Topic</label>
+                                <input type="text" name="topic" class="form-control" required style="border-radius:10px;">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Primary Keyword</label>
+                                <input type="text" name="primary_keyword" class="form-control" required style="border-radius:10px;">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-uppercase" style="color:var(--color-copper-gold);">Secondary Keywords</label>
+                                <input type="text" name="secondary_keywords" class="form-control" style="border-radius:10px;">
+                            </div>
+                            <button type="submit" class="btn btn-dark-pill w-100 py-2 gen-btn">Generate SEO Data &rarr;</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Output / Refinement Area -->
+        <div class="col-md-7">
+            <div id="outputLoading" class="text-center p-5" style="display:none;">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h5 class="mt-3 fw-bold text-muted">Writing content in your BrandCraft voice...</h5>
+            </div>
+            
+            <div id="outputArea" style="display:none;">
+                <div class="card shadow-sm border-0" style="border-radius:16px;">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0" style="color:var(--color-navy-deep);" id="outputTitle">Generated Content</h5>
+                        <input type="hidden" id="currentContentId">
+                        
+                        <!-- Actions dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-light-pill dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Actions
+                            </button>
+                            <ul class="dropdown-menu shadow-sm" style="border-radius:12px;">
+                                <li><button class="dropdown-item" onclick="copyContent()">Copy</button></li>
+                                <li><a class="dropdown-item text-primary" href="{% url 'branding:creative_studio' project.pk %}">Create Visual</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item text-danger" onclick="archiveContent()">Archive</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body p-4 pt-2">
+                        <!-- AI Rewrite Engine Tools -->
+                        <div class="d-flex flex-wrap gap-2 mb-4 p-2" style="background:var(--color-bg-main); border-radius:12px;">
+                            <span class="small fw-bold text-muted d-flex align-items-center ms-2 me-2">AI Refine:</span>
+                            <button class="btn btn-sm btn-outline-dark" style="border-radius:20px;" onclick="refineContent('shorten')">Shorten</button>
+                            <button class="btn btn-sm btn-outline-dark" style="border-radius:20px;" onclick="refineContent('expand')">Expand</button>
+                            <button class="btn btn-sm btn-outline-dark" style="border-radius:20px;" onclick="refineContent('professional')">Professional</button>
+                            <button class="btn btn-sm btn-outline-dark" style="border-radius:20px;" onclick="refineContent('friendly')">Friendly</button>
+                            <button class="btn btn-sm btn-outline-dark" style="border-radius:20px;" onclick="refineContent('simplify')">Simplify</button>
+                        </div>
+
+                        <div id="contentPreview" style="font-family:serif; font-size:1.1rem; line-height:1.7; color:#333;">
+                            <!-- JSON rendering goes here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="emptyState" class="text-center p-5 border h-100 d-flex flex-column justify-content-center" style="border-radius: 16px; border-style: dashed !important; color: #aaa;">
+                <div style="font-size:3rem; margin-bottom:10px;">✍️</div>
+                <p class="mb-0 fw-bold text-dark">No marketing content yet.</p>
+                <p class="small">Create your first on-brand campaign message.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marketing Content Library -->
+    <div class="mt-5 pt-4 border-top">
+        <h4 class="fw-bold mb-4" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Recent Marketing Content</h4>
+        {% if recent_content %}
+        <div class="row g-3">
+            {% for item in recent_content %}
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm" style="border-radius:16px;">
+                    <div class="card-body p-4 position-relative">
+                        <span class="badge bg-light text-dark position-absolute top-0 end-0 m-3">{{ item.get_content_type_display }}</span>
+                        <h6 class="fw-bold mb-1 pe-5 text-truncate" style="color:var(--color-navy-deep);">{{ item.title }}</h6>
+                        <p class="text-muted small mb-3">{{ item.created_at|date:"M d, Y" }} &bull; {{ item.get_status_display }}</p>
+                        
+                        <div class="text-muted small text-truncate" style="max-height: 3em;">
+                            {{ item.snippet }}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-light-pill" data-json="{{ item.safe_json_string|force_escape }}" onclick="loadHistoryItem({{ item.id }}, JSON.parse(this.dataset.json))">Open in Editor</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-5 border" style="border-radius:16px; border-style:dashed !important; color:#aaa;">
+            <p class="mb-0">Your generated content library is currently empty.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Next Phase Navigation -->
+    <div class="mt-5 d-flex justify-content-between align-items-center border-top pt-4">
+        <a href="{% url 'branding:project_detail' project.pk %}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold">
+            &larr; Back to Brand Hub
+        </a>
+        <a href="{% url 'branding:downloads' project.pk %}" class="btn btn-dark-pill px-5 py-3 fs-5 shadow-sm">
+            Next: Publish &rarr;
+        </a>
+    </div>
+</div>
+
+<script>
+function renderJsonContent(jsonData) {
+    let html = '';
+    for (const [key, value] of Object.entries(jsonData)) {
+        let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        html += `<div class="mb-3">
+            <div class="small fw-bold text-uppercase mb-1" style="color:var(--color-copper-gold);">${displayKey}</div>`;
+        if (Array.isArray(value)) {
+            html += `<ul class="mb-0">`;
+            value.forEach(v => html += `<li>${v}</li>`);
+            html += `</ul></div>`;
+        } else if (typeof value === 'object' && value !== null) {
+            html += `<pre class="bg-light p-2 rounded">${JSON.stringify(value, null, 2)}</pre></div>`;
+        } else {
+            html += `<div>${String(value).replace(/\n/g, '<br>')}</div></div>`;
+        }
+    }
+    return html;
+}
+
+function loadHistoryItem(id, contentJson) {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('outputArea').style.display = 'block';
+    document.getElementById('currentContentId').value = id;
+    document.getElementById('contentPreview').innerHTML = renderJsonContent(contentJson);
+    document.getElementById('outputTitle').innerText = "Saved Content";
+    document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function generateContent(event, contentType) {
+    event.preventDefault();
+    const form = event.target;
+    const btn = form.querySelector('.gen-btn');
+    
+    // UI Loading state
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
+    btn.disabled = true;
+    
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('outputArea').style.display = 'none';
+    document.getElementById('outputLoading').style.display = 'block';
+
+    // Gather form data
+    const formData = new FormData(form);
+    const kwargs = {};
+    formData.forEach((value, key) => {
+        if(key !== 'csrfmiddlewaretoken') kwargs[key] = value;
+    });
+
+    try {
+        const response = await fetch("{% url 'branding:marketing_studio' project.pk %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            body: JSON.stringify({ 
+                action: 'generate',
+                content_type: contentType,
+                kwargs: kwargs
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            document.getElementById('currentContentId').value = data.id;
+            document.getElementById('contentPreview').innerHTML = renderJsonContent(data.content_json);
+            document.getElementById('outputTitle').innerText = "Generated Content";
+            
+            document.getElementById('outputLoading').style.display = 'none';
+            document.getElementById('outputArea').style.display = 'block';
+            document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth' });
+            
+            appendRecentContent(data);
+        } else {
+            alert(data.error || 'Something went wrong while generating.');
+            document.getElementById('outputLoading').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+        }
+    } catch (err) {
+        alert('Network error while generating.');
+        console.error(err);
+        document.getElementById('outputLoading').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function appendRecentContent(data) {
+    let row = document.getElementById('recentContentList');
+    
+    if (!row) {
+        let emptyState = document.querySelector('.text-center.p-5.border');
+        let parent = emptyState ? emptyState.parentNode : document.body;
+        if (emptyState) {
+            emptyState.remove();
+        }
+        row = document.createElement('div');
+        row.id = 'recentContentList';
+        row.className = 'row g-4';
+        parent.appendChild(row);
+    }
+    
+    let snippet = "No preview available.";
+    if (data.content_json) {
+        let values = Object.values(data.content_json).filter(v => typeof v === 'string');
+        let text = values.join(' ');
+        // Strip HTML tags and collapse whitespace
+        text = text.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        snippet = text.length > 80 ? text.substring(0, 77) + '...' : text;
+    }
+    
+    let safeJson = JSON.stringify(data.content_json).replace(/"/g, '&quot;');
+    
+    let html = `
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm" style="border-radius:16px;">
+                <div class="card-body p-4 position-relative">
+                    <span class="badge bg-light text-dark position-absolute top-0 end-0 m-3">${data.content_type_display}</span>
+                    <h6 class="fw-bold mb-1 pe-5 text-truncate" style="color:var(--color-navy-deep);">${data.title}</h6>
+                    <p class="text-muted small mb-3">${data.created_at} &bull; ${data.status_display}</p>
+                    
+                    <div class="text-muted small text-truncate" style="max-height: 3em;">
+                        ${snippet}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-light-pill" data-json="${safeJson}" onclick="loadHistoryItem(${data.id}, JSON.parse(this.dataset.json))">Open in Editor</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    row.insertAdjacentHTML('afterbegin', html);
+}
+
+async function refineContent(operation) {
+    const contentId = document.getElementById('currentContentId').value;
+    if(!contentId) return;
+    
+    document.getElementById('outputArea').style.opacity = '0.5';
+    
+    try {
+        const response = await fetch("{% url 'branding:marketing_studio' project.pk %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ 
+                action: 'refine',
+                content_id: contentId,
+                operation: operation
+            })
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+            document.getElementById('contentPreview').innerHTML = renderJsonContent(data.content_json);
+        } else {
+            alert(data.error || 'Failed to refine content.');
+        }
+    } catch (err) {
+        alert('Network error while refining.');
+    } finally {
+        document.getElementById('outputArea').style.opacity = '1';
+    }
+}
+
+function copyContent() {
+    const text = document.getElementById('contentPreview').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Content copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

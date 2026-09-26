@@ -1,0 +1,437 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+
+{% block title %}Brand Kit & Downloads | {{ project.business_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Premium Redesign */
+.downloads-header {
+    margin-bottom: 50px;
+    position: relative;
+    padding: 30px;
+    background: linear-gradient(135deg, var(--color-navy-deep), #1a365d);
+    border-radius: 24px;
+    color: white;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(15, 36, 56, 0.15);
+}
+
+.downloads-header::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: radial-gradient(circle at top right, rgba(209, 151, 58, 0.15), transparent 60%);
+    pointer-events: none;
+}
+
+.downloads-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: white;
+}
+
+.downloads-header .text-muted {
+    color: rgba(255,255,255,0.7) !important;
+    font-size: 1.1rem;
+    max-width: 600px;
+}
+
+.brand-kit-board {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    padding: 48px;
+    margin-bottom: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02), inset 0 2px 0 rgba(255,255,255,1);
+}
+
+.board-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.readiness-badge {
+    background: linear-gradient(135deg, var(--color-gold-primary, #d1973a), #b87c24);
+    color: white;
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(209, 151, 58, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.board-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--color-gold-primary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(209,151,58,0.3), transparent);
+}
+
+.asset-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFF;
+    border: 1px solid rgba(200,190,175,0.5);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-right: 12px;
+    margin-bottom: 12px;
+    color: var(--color-navy-deep);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+.asset-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    border-color: var(--color-gold-primary);
+}
+
+.guidelines-card {
+    background: #FFF;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(200,190,175,0.4);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+}
+.guidelines-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--color-sage-deep), var(--color-gold-primary));
+}
+
+.btn-export {
+    background: linear-gradient(135deg, var(--color-navy-deep), #1a365d);
+    color: #FFF;
+    font-weight: 700;
+    padding: 16px 40px;
+    border-radius: 50px;
+    border: none;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px rgba(15, 36, 56, 0.2);
+}
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(15, 36, 56, 0.3);
+    color: #FFF;
+}
+.btn-guidelines {
+    background: #FFF;
+    border: 2px solid var(--color-gold-primary);
+    color: var(--color-gold-primary);
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+.btn-guidelines:hover {
+    background: var(--color-gold-primary);
+    color: #FFF;
+    box-shadow: 0 8px 16px rgba(209, 151, 58, 0.2);
+}
+.btn-presentation {
+    background: #FFF;
+    border: 2px solid var(--color-navy-deep);
+    color: var(--color-navy-deep);
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+.btn-presentation:hover {
+    background: var(--color-navy-deep);
+    color: #FFF;
+    box-shadow: 0 8px 16px rgba(23, 52, 79, 0.2);
+}
+
+.downloads-list {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+.download-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(200,190,175,0.2);
+    transition: all 0.2s ease;
+}
+.download-item:hover {
+    background: #FFF;
+}
+.download-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="downloads-header">
+    <h1 class="downloads-title">Downloads & Brand Kit</h1>
+    <p class="text-muted">Generate guidelines, export your Brand Package ZIP, and access all your deliverables.</p>
+</div>
+{% csrf_token %}
+
+<!-- BRAND KIT BOARD -->
+<div class="brand-kit-board">
+    <div class="board-title">
+        <span>Brand Kit Builder</span>
+        <span class="readiness-badge">Readiness: {{ readiness_pct }}%</span>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="board-section">
+                <div class="section-title">Brand Essence</div>
+                <div class="asset-pill">{% if project.business_name %}<span style="color: #2E7D32; font-weight: 800;">✓</span>{% else %}<span style="color: #9E9E9E;">○</span>{% endif %} Business Name</div>
+                <div class="asset-pill">{% if has_slogan %}<span style="color: #2E7D32; font-weight: 800;">✓</span>{% else %}<span style="color: #9E9E9E;">○</span>{% endif %} Slogan</div>
+                <div class="asset-pill">{% if project.brand_mission %}<span style="color: #2E7D32; font-weight: 800;">✓</span>{% else %}<span style="color: #9E9E9E;">○</span>{% endif %} Mission</div>
+            </div>
+            <div class="board-section">
+                <div class="section-title">Visual Identity</div>
+                <div class="asset-pill">{% if has_logo %}<span style="color: #2E7D32; font-weight: 800;">✓</span>{% else %}<span style="color: #9E9E9E;">○</span>{% endif %} Primary Logo</div>
+                <div class="asset-pill">{% if project.primary_color %}<span style="color: #2E7D32; font-weight: 800;">✓</span>{% else %}<span style="color: #9E9E9E;">○</span>{% endif %} Color Palette</div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="guidelines-card">
+                <h4 style="font-family: 'Playfair Display', serif; color: var(--color-navy-deep); margin-bottom: 16px; font-weight: 800; font-size: 1.8rem;">Brand Guidelines</h4>
+                <p style="font-size: 1.05rem; color: var(--color-text-muted); margin-bottom: 30px; line-height: 1.6;">
+                    Generate a professional PDF outlining how to use your brand's voice, messaging, and visual identity. Keep your entire team perfectly aligned.
+                </p>
+                <div class="d-flex gap-3">
+                    <button class="btn-guidelines" id="generateGuidelinesBtn" onclick="generateGuidelines()">
+                        <span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                        Generate Guidelines
+                    </button>
+                    <a href="{% url 'branding:presentation_mode' project.pk %}" target="_blank" class="btn-presentation">
+                        Presentation Mode
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-end mt-5 pt-5" style="border-top: 1px solid rgba(200,190,175,0.4);">
+        <p class="text-muted mb-3" style="font-size: 1.1rem;">Compiles your guidelines, logos, assets, and design tokens into one ZIP file.</p>
+        <button class="btn-export" id="exportPackageBtn" onclick="exportBrandPackage()">
+            <span class="spinner-border spinner-border-sm d-none me-3" role="status" aria-hidden="true"></span>
+            Export Complete Brand Package (ZIP)
+        </button>
+    </div>
+</div>
+
+<!-- RECENT EXPORTS -->
+<h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--color-navy-deep); margin-bottom: 24px;">Recent Brand Packages</h3>
+{% if exports %}
+<div class="downloads-list mb-5">
+    {% for exp in exports %}
+    <div class="download-item">
+        <div>
+            <div style="font-weight: 700; color: var(--color-navy-deep);">{{ exp.get_export_type_display }}</div>
+            <div style="font-size: 0.85rem; color: var(--color-text-muted);">Generated {{ exp.created_at|date:"M j, Y H:i" }}</div>
+        </div>
+        <div>
+            {% if exp.status == 'READY' %}
+            <a href="{% url 'branding:download_file' project.pk 'export' exp.id %}" class="btn btn-sm btn-outline-dark" style="border-radius: 50px;">Download ZIP</a>
+            {% else %}
+            <span class="badge bg-secondary">{{ exp.get_status_display }}</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted mb-5">You haven't exported any Brand Packages yet.</p>
+{% endif %}
+
+<!-- GENERATED REPORTS -->
+<h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--color-navy-deep); margin-bottom: 24px;">Generated Reports & Guidelines</h3>
+{% if reports %}
+<div class="downloads-list mb-5">
+    {% for rep in reports %}
+    <div class="download-item">
+        <div>
+            <div style="font-weight: 700; color: var(--color-navy-deep);">{{ rep.title }} (v{{ rep.version }})</div>
+            <div style="font-size: 0.85rem; color: var(--color-text-muted);">{{ rep.get_report_type_display }} | {{ rep.created_at|date:"M j, Y H:i" }}</div>
+        </div>
+        <div>
+            <a href="{% url 'branding:download_file' project.pk 'report' rep.id %}" class="btn btn-sm btn-outline-dark" style="border-radius: 50px;">Download PDF</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted mb-5">No reports generated yet.</p>
+{% endif %}
+
+<!-- NEXT STEPS: BRAND ACTIVATION -->
+<div class="brand-kit-board mt-5" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(253,251,247,0.9));">
+    <div class="board-title">
+        <span>What's Next: Brand Activation</span>
+    </div>
+    <p class="text-muted mb-4" style="font-size: 1.1rem; max-width: 700px;">
+        Your brand is built and ready for the world. Now it's time to put it to work. Manage your tasks, plan your campaigns, or invite your team to collaborate.
+    </p>
+    
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-8">
+            <a href="{% url 'workflow:dashboard' project.pk %}" class="text-decoration-none">
+                <div class="guidelines-card text-center" style="transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; padding: 40px;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.08)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.03)'">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                    <h5 class="fw-bold" style="color: var(--color-navy-deep); font-size: 1.5rem; margin-bottom: 15px;">Launch Workspace Planner</h5>
+                    <p class="text-muted mx-auto" style="max-width: 500px; font-size: 1.1rem; margin-bottom: 25px;">
+                        Jump into the intelligent workflow engine to start planning your marketing rollout based on your new assets.
+                    </p>
+                    <div style="color: var(--color-gold-primary); font-weight: 700; font-size: 1.1rem;">Open Planner &rarr;</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function generateGuidelines() {
+    const btn = document.getElementById('generateGuidelinesBtn');
+    const spinner = btn.querySelector('.spinner-border');
+    
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    fetch("{% url 'branding:generate_guidelines' project.pk %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    })
+    .then(r => {
+        if (!r.ok) {
+            return r.text().then(text => { throw new Error(text) });
+        }
+        return r.json();
+    })
+    .then(data => {
+        if(data.success) {
+            spinner.classList.add('d-none');
+            btn.innerHTML = '✅ Guidelines Ready!';
+            btn.classList.add('bg-success', 'text-white');
+            btn.style.borderColor = '#198754';
+            
+            // Wait 1.5 seconds, then download the PDF and reset button
+            setTimeout(() => {
+                window.location.href = `/branding/project/{{ project.pk }}/download/report/${data.report_id}/`;
+                setTimeout(() => {
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>Regenerate Guidelines';
+                    btn.disabled = false;
+                    btn.classList.remove('bg-success', 'text-white');
+                    btn.style.borderColor = '';
+                }, 2000);
+            }, 1500);
+        } else {
+            alert('Failed: ' + (data.error || 'Unknown error'));
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('An error occurred. Check console for details.');
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    });
+}
+
+function exportBrandPackage() {
+    const btn = document.getElementById('exportPackageBtn');
+    const spinner = btn.querySelector('.spinner-border');
+    
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    fetch("{% url 'branding:export_package' project.pk %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            inclusions: ['identity', 'logos', 'creative', 'guidelines']
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            window.location.reload();
+        } else {
+            alert('Export failed: ' + (data.error || 'Unknown error'));
+            btn.disabled = false;
+            spinner.classList.add('d-none');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Request failed. Check console for details.');
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+    });
+}
+</script>
+{% endblock %}

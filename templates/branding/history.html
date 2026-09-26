@@ -1,0 +1,29 @@
+{% extends 'dashboard/project_base.html' %}
+{% load static %}
+{% load brand_filters %}
+
+{% block title %}Audit History | {{ project.business_name }}{% endblock %}
+
+{% block menu_history %}active{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm p-4" style="border-radius: 24px; background: #FFF;">
+    <h2 class="fw-bold mb-2" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Audit History</h2>
+    <p class="text-muted mb-4">Complete logs and modification timeline for {{ project.business_name }}.</p>
+
+    <!-- Timeline Logs -->
+    <div class="p-4" style="background:var(--color-bg-main); border-radius:16px; border:1px solid rgba(200,190,175,0.25);">
+        <ul class="list-unstyled mb-0" style="font-size:0.95rem; line-height:2.2; color:var(--color-navy-sec);">
+            {% for log in project.activity_logs.all %}
+            <li><i class="bi bi-clock-history text-muted me-2"></i> <strong class="text-muted">{{ log.timestamp|timesince }} ago:</strong> {{ log.action|render_bold }}</li>
+            {% empty %}
+            <li class="text-muted fst-italic">No activity recorded yet. Start building your brand to see history!</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="mt-5 text-end border-top pt-4">
+        <a href="{% url 'branding:project_detail' project.pk %}" class="btn btn-dark-pill px-4">&larr; Back to Overview</a>
+    </div>
+</div>
+{% endblock %}

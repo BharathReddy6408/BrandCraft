@@ -1,0 +1,596 @@
+{% extends 'dashboard/dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Workspace Dashboard | BrandCraft{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Bento Layout spacing */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+    margin-top: 12px;
+}
+
+/* Clean Card Base */
+.clean-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid rgba(200,190,175,0.25);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    padding: 24px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Welcome Hero */
+.welcome-hero {
+    grid-column: span 12;
+    background: linear-gradient(120deg, #fdfbf7, #f3ede4);
+    border: none;
+    padding: 48px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+.hero-text-content {
+    position: relative;
+    z-index: 2;
+    max-width: 500px;
+}
+.welcome-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin-bottom: 8px;
+    line-height: 1.1;
+}
+.hero-3d-img {
+    position: absolute;
+    right: -20px;
+    top: -40px;
+    height: 140%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* KPI Cards */
+.kpi-row {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+.kpi-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    position: relative;
+}
+.kpi-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+.kpi-blue { background: rgba(89, 140, 246, 0.1); color: #598CF6; }
+.kpi-green { background: rgba(56, 179, 145, 0.1); color: #38B391; }
+.kpi-purple { background: rgba(181, 114, 248, 0.1); color: #B572F8; }
+.kpi-teal { background: rgba(45, 192, 174, 0.1); color: #2DC0AE; }
+.kpi-details h6 {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+.kpi-details h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--color-navy-deep);
+    margin: 0 0 4px 0;
+}
+.kpi-trend {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #38B391;
+}
+.sparkline-container {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 30px;
+}
+
+/* Circular Progress */
+.progress-ring {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+}
+
+/* Project Performance & AI Advisor */
+.chart-card {
+    grid-column: span 7;
+}
+.ai-advisor-card {
+    grid-column: span 5;
+    background: #FDFBF7;
+    position: relative;
+}
+.ai-advisor-card .content-area {
+    width: 60%;
+    position: relative;
+    z-index: 2;
+}
+.ai-advisor-card .robot-img {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 45%;
+    z-index: 1;
+}
+
+/* Workspace Tabs */
+.workspace-card {
+    grid-column: span 12;
+    padding-top: 16px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding-left: 0;
+    padding-right: 0;
+}
+.workspace-tabs {
+    display: flex;
+    gap: 32px;
+    border-bottom: 1px solid rgba(200,190,175,0.3);
+    margin-bottom: 24px;
+}
+.workspace-tab {
+    padding: 12px 0;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    position: relative;
+    font-size: 0.95rem;
+}
+.workspace-tab.active {
+    color: var(--color-navy-deep);
+}
+.workspace-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--color-gold-primary);
+    border-radius: 3px 3px 0 0;
+}
+
+/* Asset Grid */
+.asset-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+.asset-card {
+    background: #fff;
+    border: 1px solid rgba(200,190,175,0.3);
+    border-radius: 16px;
+    overflow: hidden;
+}
+.asset-img-ph {
+    width: 100%;
+    height: 160px;
+    background: #17344F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    color: #fff;
+    font-size: 3rem;
+    font-weight: 800;
+}
+.asset-footer {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.asset-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-navy-deep);
+    margin: 0;
+}
+.asset-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    background: var(--color-bg-main);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Continue Building Stepper */
+.stepper-section {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+.stepper-card {
+    padding: 32px;
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid rgba(200,190,175,0.25);
+}
+.progress-stepper {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-top: 32px;
+}
+.progress-stepper::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(200,190,175,0.3);
+    z-index: 1;
+}
+.step-item {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+.step-circle {
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 2px solid rgba(200,190,175,0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+.step-item.completed .step-circle {
+    background: #38B391;
+    border-color: #38B391;
+    color: #fff;
+}
+.step-item.active .step-circle {
+    border-color: var(--color-navy-deep);
+    color: var(--color-navy-deep);
+    box-shadow: 0 0 0 4px rgba(23,52,79,0.1);
+}
+.step-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+}
+.step-item.active .step-label, .step-item.completed .step-label {
+    color: var(--color-navy-deep);
+}
+
+.target-card {
+    background: #FDFBF7;
+    border-radius: 20px;
+    border: 1px solid rgba(200,190,175,0.25);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+}
+.target-card img {
+    width: 120px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bento-grid">
+    <!-- Welcome Header Card -->
+    <div class="clean-card welcome-hero">
+        <div class="hero-text-content">
+            <p style="font-size: 1.1rem; color: var(--color-navy-deep); font-weight: 600; margin-bottom: 8px;">Welcome back,</p>
+            <h1 class="welcome-title">{{ user_name|default:user.username|title|default:'Nik Verma' }} 👋</h1>
+            <p class="mb-4" style="color: var(--color-text-muted); font-size:1rem;">Let's create something exceptional today!</p>
+            {% if recent_project %}
+            <a href="{% url 'branding:project_detail' recent_project.pk %}" class="btn" style="background: var(--color-navy-deep); color: #fff; border-radius: 50px; font-size: 0.9rem; font-weight: 600; padding: 10px 24px; text-decoration: none;">✨ Continue where you left off &rarr;</a>
+            {% else %}
+            <a href="{% url 'branding:create_project' %}" class="btn" style="background: var(--color-navy-deep); color: #fff; border-radius: 50px; font-size: 0.9rem; font-weight: 600; padding: 10px 24px; text-decoration: none;">✨ Start your first project &rarr;</a>
+            {% endif %}
+        </div>
+        <img src="{% static 'img/dashboard/hero_3d.png' %}" alt="3D Elements" class="hero-3d-img">
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-row">
+        <div class="clean-card kpi-card">
+            <div class="kpi-icon-box kpi-blue">👥</div>
+            <div class="kpi-details">
+                <h6>Total Assets</h6>
+                <h3>126</h3>
+                <div class="kpi-trend">&uarr; 25% from last month</div>
+            </div>
+            <!-- Sparkline SVG -->
+            <div class="sparkline-container">
+                <svg viewBox="0 0 100 30" preserveAspectRatio="none" width="100%" height="100%">
+                    <path d="M0,25 C20,20 30,28 50,15 C70,2 80,10 100,5" fill="none" stroke="#598CF6" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="clean-card kpi-card">
+            <div class="kpi-icon-box kpi-green">📁</div>
+            <div class="kpi-details">
+                <h6>Projects</h6>
+                <h3>{{ projects.count|default:"0" }}</h3>
+                <div class="kpi-trend">&uarr; Active</div>
+            </div>
+            <div class="sparkline-container">
+                <svg viewBox="0 0 100 30" preserveAspectRatio="none" width="100%" height="100%">
+                    <path d="M0,20 C20,25 30,15 50,20 C70,25 80,5 100,10" fill="none" stroke="#38B391" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="clean-card kpi-card">
+            <div class="kpi-icon-box kpi-purple">✨</div>
+            <div class="kpi-details">
+                <h6>Generated Assets</h6>
+                <h3>{{ assets_count|default:"0" }}</h3>
+                <div class="kpi-trend">&uarr; Lifetime total</div>
+            </div>
+            <div class="sparkline-container">
+                <svg viewBox="0 0 100 30" preserveAspectRatio="none" width="100%" height="100%">
+                    <path d="M0,28 C20,15 30,20 50,10 C70,0 80,15 100,5" fill="none" stroke="#B572F8" stroke-width="3" stroke-linecap="round"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="clean-card kpi-card">
+            <div class="kpi-icon-box kpi-teal">🛡️</div>
+            <div class="kpi-details">
+                <h6>Completion Rate</h6>
+                <h3>{{ completion_pct|default:"0" }}%</h3>
+                <div class="kpi-trend">Brand Readiness</div>
+            </div>
+            <div class="progress-ring">
+                <svg viewBox="0 0 36 36" width="100%" height="100%">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(200,190,175,0.3)" stroke-width="4" />
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#C68B3C" stroke-width="4" stroke-dasharray="{{ completion_pct|default:'0' }}, 100" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Middle Row: Chart & AI Advisor -->
+    <div class="clean-card chart-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Project Performance</h5>
+            <select class="form-select form-select-sm w-auto" style="border-radius: 50px; border-color: rgba(200,190,175,0.4);">
+                <option>This Month</option>
+                <option>Last Month</option>
+            </select>
+        </div>
+        <div style="height: 250px;">
+            <canvas id="performanceChart"></canvas>
+        </div>
+    </div>
+
+    <div class="clean-card ai-advisor-card">
+        <div class="content-area">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span style="background: rgba(216,174,104,0.2); color: var(--color-gold-primary); padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem;">✨ AI</span>
+                <span style="font-weight: 700; color: var(--color-navy-deep);">AI Brand Advisor</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--color-text-muted);">Your creative assistant</p>
+            
+            <div style="background: #fff; padding: 24px; border-radius: 16px; border: 1px solid rgba(200,190,175,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.02); margin-top: 16px;">
+                <h5 style="font-weight: 800; color: var(--color-navy-deep); line-height: 1.3; margin-bottom: 12px;">Design a modern logo for your brand</h5>
+                <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 24px;">Minimal, clean and professional logo works best for your brand category.</p>
+                {% if recent_project %}
+                <a href="{% url 'branding:logo_studio' recent_project.pk %}" class="btn" style="background: var(--color-navy-deep); color: #fff; border-radius: 50px; padding: 10px 24px; font-size: 0.85rem; font-weight: 600;">Open Logo Studio &rarr;</a>
+                {% else %}
+                <a href="{% url 'branding:create_project' %}" class="btn" style="background: var(--color-navy-deep); color: #fff; border-radius: 50px; padding: 10px 24px; font-size: 0.85rem; font-weight: 600;">Create Project &rarr;</a>
+                {% endif %}
+            </div>
+        </div>
+        <img src="{% static 'img/dashboard/robot_3d.png' %}" class="robot-img" alt="AI Advisor Robot">
+    </div>
+
+    <!-- Creative Workspace Tabs & Grid -->
+    <div class="clean-card workspace-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold m-0" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">My Creative Workspace</h5>
+            <button class="btn btn-sm" style="border: 1px solid rgba(200,190,175,0.4); border-radius: 50px; font-size: 0.8rem; font-weight: 600;">View All &rarr;</button>
+        </div>
+        
+        <div class="workspace-tabs">
+            <div class="workspace-tab active">All Assets</div>
+            <div class="workspace-tab">Logos</div>
+            <div class="workspace-tab">Social Media</div>
+            <div class="workspace-tab">Print Design</div>
+            <div class="workspace-tab">Brand Kits</div>
+            <div class="workspace-tab">Documents</div>
+        </div>
+
+        <div class="asset-grid">
+            <div class="asset-card">
+                <div class="asset-img-ph" style="background: #1A1A1A;">
+                    <span style="color:#E8B971;">M</span>
+                </div>
+                <div class="asset-footer">
+                    <p class="asset-title">Manac Fashion Logo</p>
+                    <span class="asset-badge">PNG</span>
+                </div>
+            </div>
+            <div class="asset-card">
+                <div class="asset-img-ph" style="background: #2C2019;">
+                    <span style="font-size:1rem; padding:20px; font-family:'Inter', sans-serif;">COFFEE MAKES EVERYTHING BETTER</span>
+                </div>
+                <div class="asset-footer">
+                    <p class="asset-title">Coffee Post</p>
+                    <span class="asset-badge">JPG</span>
+                </div>
+            </div>
+            <div class="asset-card">
+                <div class="asset-img-ph" style="background: #E5DBCA; color: #4A633F;">
+                    <span style="font-size:1.5rem;">EcoLife BOX</span>
+                </div>
+                <div class="asset-footer">
+                    <p class="asset-title">EcoLife Box Design</p>
+                    <span class="asset-badge">PNG</span>
+                </div>
+            </div>
+            <div class="asset-card">
+                <div class="asset-img-ph" style="background: #17344F; color: #8FA99B;">
+                    <span style="font-size:1.2rem; text-align:center; padding:10px;">TECHNOVA<br>BRAND<br>GUIDELINES</span>
+                </div>
+                <div class="asset-footer">
+                    <p class="asset-title">TechNova Brand Guide</p>
+                    <span class="asset-badge">PDF</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Continue Building Stepper -->
+    {% if project %}
+    <div class="stepper-section">
+        <div class="stepper-card">
+            <h5 class="fw-bold" style="font-family:'Playfair Display',serif; color:var(--color-navy-deep);">Continue Building Your Brand</h5>
+            
+            <div class="progress-stepper">
+                <a href="{% url 'branding:brand_identity' project.pk %}" class="step-item {% if has_brand_identity %}completed{% else %}active{% endif %} text-decoration-none text-dark">
+                    <div class="step-circle">{% if has_brand_identity %}✓{% else %}1{% endif %}</div>
+                    <div class="step-label">Brand Identity</div>
+                </a>
+                <a href="{% url 'branding:logo_studio' project.pk %}" class="step-item {% if has_logo %}completed{% elif has_brand_identity %}active{% endif %} text-decoration-none text-dark">
+                    <div class="step-circle">{% if has_logo %}✓{% else %}2{% endif %}</div>
+                    <div class="step-label">Logo Design</div>
+                </a>
+                <a href="{% url 'branding:creative_studio' project.pk %}" class="step-item {% if has_creative %}completed{% elif has_logo %}active{% endif %} text-decoration-none text-dark">
+                    <div class="step-circle">{% if has_creative %}✓{% else %}3{% endif %}</div>
+                    <div class="step-label">Creative Assets</div>
+                </a>
+                <a href="{% url 'branding:marketing_studio' project.pk %}" class="step-item {% if has_marketing %}completed{% elif has_creative %}active{% endif %} text-decoration-none text-dark">
+                    <div class="step-circle">{% if has_marketing %}✓{% else %}4{% endif %}</div>
+                    <div class="step-label">Marketing</div>
+                </a>
+                <a href="{% url 'branding:downloads' project.pk %}" class="step-item {% if has_marketing %}active{% endif %} text-decoration-none text-dark">
+                    <div class="step-circle">5</div>
+                    <div class="step-label">Publish</div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="target-card">
+            <img src="{% static 'img/dashboard/target_3d.png' %}" alt="Target Bullseye">
+            <div>
+                <h6 class="fw-bold" style="color:var(--color-navy-deep); margin-bottom:4px;">You're doing great!</h6>
+                <div style="font-size:0.85rem; font-weight:700; color:var(--color-navy-deep); margin-bottom:8px;">{{ completion_pct|default:"0" }}% complete</div>
+                <p style="font-size:0.75rem; color:var(--color-text-muted); margin:0; line-height:1.4;">Keep going to publish your brand and reach your audience.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js for the Project Performance graph -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const chartData = JSON.parse('{{ chart_data|escapejs }}');
+const ctx = document.getElementById('performanceChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: chartData.labels,
+        datasets: [
+            {
+                label: 'Assets Created',
+                data: chartData.assets,
+                backgroundColor: 'rgba(232, 185, 113, 0.85)',
+                borderColor: '#E8B971',
+                borderWidth: 1,
+                borderRadius: 4
+            },
+            {
+                label: 'AI Generations',
+                data: chartData.generations,
+                backgroundColor: 'rgba(56, 179, 145, 0.85)',
+                borderColor: '#38B391',
+                borderWidth: 1,
+                borderRadius: 4
+            },
+            {
+                label: 'Projects Completed',
+                data: chartData.projects,
+                backgroundColor: 'rgba(89, 140, 246, 0.85)',
+                borderColor: '#598CF6',
+                borderWidth: 1,
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+                labels: { boxWidth: 10, usePointStyle: true, pointStyle: 'circle', padding: 20, font: {family: 'Inter', size: 12} }
+            }
+        },
+        scales: {
+            y: {
+                min: 0,
+                max: 100,
+                grid: { drawBorder: false, color: 'rgba(0,0,0,0.05)' },
+                ticks: { font: {family: 'Inter', size: 11}, color: '#A0AEC0' }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: {family: 'Inter', size: 11}, color: '#A0AEC0' }
+            }
+        }
+    }
+});
+
+window.addEventListener('load', () => {
+    gsap.fromTo(".clean-card, .stepper-card, .target-card", 
+        { y: 30, opacity: 0 },
+        { duration: 0.6, y: 0, opacity: 1, stagger: 0.1, ease: "power2.out" }
+    );
+});
+</script>
+{% endblock %}

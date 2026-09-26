@@ -1,0 +1,234 @@
+{% extends 'system_admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Asset Categories | Admin Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    color: var(--admin-accent);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.dashboard-header p {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.category-card {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 6px;
+    background: linear-gradient(90deg, var(--admin-accent), #8b5cf6);
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.category-name {
+    font-weight: 700;
+    color: var(--admin-accent);
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    margin-top: 8px;
+}
+
+.category-desc {
+    color: var(--admin-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    flex: 1;
+    margin-bottom: 24px;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.action-btn {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.05);
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.action-btn:hover {
+    color: white;
+    background: var(--admin-accent);
+    border-color: var(--admin-accent);
+    transform: scale(1.1);
+}
+
+.action-btn.delete:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--admin-text-muted);
+    grid-column: 1 / -1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Asset Categories</h1>
+        <p>Manage categories for organizing templates and creative assets.</p>
+    </div>
+    <button class="btn-3d-glass" onclick="openModal('addCategoryModal')">
+        <i class="fas fa-plus"></i> Add Category
+    </button>
+</div>
+
+<div class="categories-grid">
+    {% for category in categories %}
+    <div class="category-card">
+        <div class="category-name">{{ category.name }}</div>
+        <div class="category-desc">{{ category.description|default:"No description provided for this category." }}</div>
+        
+        <div class="card-footer">
+            <button class="action-btn" onclick="openEditModal({{ category.id }}, '{{ category.name|escapejs }}', '{{ category.description|escapejs }}')" title="Edit Category">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="action-btn delete" onclick="confirmDelete({{ category.id }}, '{{ category.name|escapejs }}')" title="Delete Category">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            
+            <form id="delete-form-{{ category.id }}" action="{% url 'system_admin:delete_asset_category' category.id %}" method="POST" style="display: none;">
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-tags" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i>
+        <h3>No categories found</h3>
+        <p>Click "Add Category" to create your first asset category.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal-overlay" id="addCategoryModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Add New Category</h2>
+            <button class="btn-close" onclick="closeModal('addCategoryModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="{% url 'system_admin:add_asset_category' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Category Name <span style="color:red">*</span></label>
+                    <input type="text" name="name" required class="custom-select" placeholder="e.g. Video Ads">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description (Optional)</label>
+                    <textarea name="description" class="custom-select" rows="3" placeholder="Brief description of this category..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="closeModal('addCategoryModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass"><i class="fas fa-save"></i> Save Category</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal-overlay" id="editCategoryModal">
+    <div class="custom-modal">
+        <div class="modal-header">
+            <h2>Edit Category</h2>
+            <button class="btn-close" onclick="closeModal('editCategoryModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="editCategoryForm" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Category Name <span style="color:red">*</span></label>
+                    <input type="text" id="edit-name" name="name" required class="custom-select">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Description (Optional)</label>
+                    <textarea id="edit-description" name="description" class="custom-select" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="closeModal('editCategoryModal')">Cancel</button>
+                <button type="submit" class="btn-3d-glass"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openEditModal(id, name, description) {
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-description').value = description;
+    document.getElementById('editCategoryForm').action = "/portal/asset-categories/" + id + "/edit/";
+    openModal('editCategoryModal');
+}
+
+function confirmDelete(id, name) {
+    if (confirm('Are you sure you want to delete the category "' + name + '"?')) {
+        document.getElementById('delete-form-' + id).submit();
+    }
+}
+</script>
+{% endblock %}
